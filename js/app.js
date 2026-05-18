@@ -19,7 +19,7 @@ function initializeApp() {
   }
 
   // Subscribe to state changes for debugging
-  if (CONFIG.debug.showStateUpdates) {
+  if (window.CONFIG && CONFIG.debug.showStateUpdates) {
     AuthState.subscribe((authState) => {
       console.log('[AUTH STATE]', authState);
     });

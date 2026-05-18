@@ -1,0 +1,185 @@
+/* ═══════════════════════════════════════════════════════
+   VARIABLES.CSS
+   CSS Custom Properties (variables) for theming
+   ═══════════════════════════════════════════════════════ */
+
+:root {
+  /* COLORS — LIGHT THEME */
+  --ink: #1A0A00;
+  --ink-soft: #3D2010;
+  --ink-muted: #8A6040;
+  --bg: #FAF6EE;
+  --bg2: #F5EDE0;
+  --surface: #FFFFFF;
+  
+  --border: rgba(26, 10, 0, 0.1);
+  --border-s: rgba(26, 10, 0, 0.18);
+  
+  --scarlet: #BE0000;
+  --scarlet-d: #8C0000;
+  --scarlet-l: #F8E8E8;
+  
+  --gold: #C49A00;
+  --gold-b: #DAA520;
+  --gold-l: #FDF4CC;
+  
+  /* SEMANTIC */
+  --accent: var(--scarlet);
+  --accent2: var(--gold-b);
+  --success: #4CAF50;
+  --warning: #FF9800;
+  --error: #F44336;
+  --info: #2196F3;
+  
+  /* SIZING */
+  --r: 10px;
+  --rs: 6px;
+  --nav-h: 60px;
+  --hdr-h: 52px;
+  
+  /* SPACING SCALE */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  
+  /* TYPOGRAPHY */
+  --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-serif: 'Cormorant Garamond', 'Georgia', serif;
+  
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-lg: 15px;
+  --text-xl: 17px;
+  --text-2xl: 20px;
+  --text-3xl: 24px;
+  --text-4xl: 32px;
+  --text-5xl: 40px;
+  --text-6xl: 52px;
+  
+  /* TRANSITIONS */
+  --duration-fast: 0.15s;
+  --duration-normal: 0.3s;
+  --duration-slow: 0.5s;
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* SHADOWS */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* DARK THEME */
+[data-theme="dark"] {
+  --ink: #FAF6EE;
+  --ink-soft: #D4C4A8;
+  --ink-muted: #8A7A60;
+  --bg: #0F0800;
+  --bg2: #1A1008;
+  --surface: #1E1208;
+  
+  --border: rgba(250, 246, 238, 0.08);
+  --border-s: rgba(250, 246, 238, 0.15);
+  
+  --scarlet-l: rgba(190, 0, 0, 0.2);
+  --gold-l: rgba(218, 165, 32, 0.15);
+}
+
+/* ═══════════════════════════════════════════════════════
+   RESET.CSS
+   Global reset and base styles
+   ═══════════════════════════════════════════════════════ */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 15px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: background var(--duration-normal), color var(--duration-normal);
+  line-height: 1.5;
+}
+
+/* TEXT ELEMENTS */
+h1, h2, h3, h4, h5, h6 {
+  line-height: 1.2;
+  font-weight: 300;
+}
+
+p {
+  margin-bottom: var(--space-4);
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color var(--duration-fast);
+}
+
+a:hover {
+  color: var(--accent-d);
+}
+
+/* FORM ELEMENTS */
+input, textarea, select {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  color: var(--ink);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+button {
+  font-family: var(--font-sans);
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-s);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border);
+}
+
+/* SELECTION */
+::selection {
+  background: var(--accent);
+  color: white;
+}

@@ -8,33 +8,13 @@
   <!-- CSS IMPORTS -->
   <link rel="stylesheet" href="./styles/variables.css">
   <link rel="stylesheet" href="./styles/auth.css">
-  
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      background-color: var(--bg-primary);
-      color: var(--text-primary);
-      line-height: 1.6;
-    }
-    
-    #root {
-      width: 100%;
-      min-height: 100vh;
-    }
-  </style>
 </head>
 <body>
   <!-- ROOT CONTAINER -->
   <div id="root"></div>
 
-  <!-- LANDING PAGE -->
-  <div id="s-land" class="screen active" style="display: none;">
+  <!-- LANDING PAGE SCREEN -->
+  <div id="s-land" class="screen active">
     <div class="landing-container">
       <div class="landing-content">
         <div class="logo-circle">
@@ -61,12 +41,13 @@
     </div>
   </div>
 
-  <!-- AUTH PAGE -->
+  <!-- AUTH PAGE SCREEN -->
   <div id="s-auth" class="screen" style="display: none;">
     <div class="auth-container">
       <div class="auth-box">
         <div class="auth-header">
           <h2>Sign Up / Sign In</h2>
+          <button class="back-btn" data-action="nav-land">← Back</button>
         </div>
         
         <form id="authForm" class="auth-form">
@@ -104,14 +85,14 @@
         
         <!-- TAB TOGGLE -->
         <div class="auth-tabs">
-          <button class="auth-tab active" data-tab="signup">Sign Up</button>
-          <button class="auth-tab" data-tab="login">Sign In</button>
+          <button class="auth-tab active" data-tab="signup" type="button">Sign Up</button>
+          <button class="auth-tab" data-tab="login" type="button">Sign In</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- LANGUAGE SELECT -->
+  <!-- LANGUAGE SELECT SCREEN -->
   <div id="s-lang" class="screen" style="display: none;">
     <div class="lang-container">
       <div class="lang-box">
@@ -127,7 +108,7 @@
     <div class="app-layout">
       <header class="app-header">
         <h1>Katachi</h1>
-        <button id="logoutBtn" class="btn btn-small">Logout</button>
+        <button id="logoutBtn" class="btn btn-small" data-action="logout">Logout</button>
       </header>
       <main class="app-content">
         <p>Welcome to Katachi App</p>

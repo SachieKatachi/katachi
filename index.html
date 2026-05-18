@@ -129,69 +129,105 @@
   
   <!-- Form submission handler -->
   <script>
+    window.handleAuthSubmit = async function(e) {
+      e.preventDefault();
+      
+      if (window.Logger) {
+        window.Logger.info('Form submitted');
+      }
+      
+      const isSignup = document.getElementById('authSubmitBtn').textContent === 'Sign Up';
+      
+      if (isSignup) {
+        // SIGNUP FLOW
+        const name = document.getElementById('authName').value.trim();
+        const email = document.getElementById('authEmail').value.trim();
+        const password = document.getElementById('authPassword').value;
+        const passwordConfirm = document.getElementById('authPasswordConfirm').value;
+        
+        if (!name || !email || !password || !passwordConfirm) {
+          alert('Please fill in all fields');
+          return;
+        }
+        
+        if (password !== passwordConfirm) {
+          alert('Passwords do not match');
+          return;
+        }
+        
+        if (window.Logger) {
+          window.Logger.info('Signup attempt', { email, name });
+        }
+        
+        // Call signup
+        if (window.EmailAuth && typeof window.EmailAuth.signup === 'function') {
+          const result = await window.EmailAuth.signup({ name, email, password });
+          
+          if (window.Logger) {
+            window.Logger.info('Signup result', { success: result.success, error: result.error });
+          }
+          
+          if (result.success) {
+            if (window.AuthState && typeof window.AuthState.setUser === 'function') {
+              window.AuthState.setUser(result.user);
+            }
+            if (window.Router && typeof window.Router.goToScreen === 'function') {
+              window.Router.goToScreen('s-lang');
+            }
+          } else {
+            alert('Signup failed: ' + (result.error || 'Unknown error'));
+          }
+        } else {
+          alert('EmailAuth module not loaded');
+        }
+      } else {
+        // LOGIN FLOW
+        const email = document.getElementById('authEmail').value.trim();
+        const password = document.getElementById('authPassword').value;
+        
+        if (!email || !password) {
+          alert('Please fill in all fields');
+          return;
+        }
+        
+        if (window.Logger) {
+          window.Logger.info('Login attempt', { email });
+        }
+        
+        // Call login
+        if (window.EmailAuth && typeof window.EmailAuth.login === 'function') {
+          const result = await window.EmailAuth.login(email, password);
+          
+          if (window.Logger) {
+            window.Logger.info('Login result', { success: result.success, error: result.error });
+          }
+          
+          if (result.success) {
+            if (window.AuthState && typeof window.AuthState.setUser === 'function') {
+              window.AuthState.setUser(result.user);
+            }
+            if (window.Router && typeof window.Router.goToScreen === 'function') {
+              window.Router.goToScreen('s-lang');
+            }
+          } else {
+            alert('Login failed: ' + (result.error || 'Unknown error'));
+          }
+        } else {
+          alert('EmailAuth module not loaded');
+        }
+      }
+    };
+
+    // Attach form handler when DOM is ready
     document.addEventListener('DOMContentLoaded', () => {
       const authForm = document.getElementById('authForm');
       if (authForm) {
-        authForm.addEventListener('submit', async (e) => {
-          e.preventDefault();
-          
-          const isSignup = document.getElementById('authSubmitBtn').textContent === 'Sign Up';
-          
-          if (isSignup) {
-            const name = document.getElementById('authName').value;
-            const email = document.getElementById('authEmail').value;
-            const password = document.getElementById('authPassword').value;
-            const passwordConfirm = document.getElementById('authPasswordConfirm').value;
-            
-            if (!name || !email || !password || !passwordConfirm) {
-              alert('Please fill in all fields');
-              return;
-            }
-            
-            if (password !== passwordConfirm) {
-              alert('Passwords do not match');
-              return;
-            }
-            
-            // Call signup
-            if (window.EmailAuth && window.EmailAuth.signup) {
-              const result = await window.EmailAuth.signup({ name, email, password });
-              if (result.success) {
-                if (window.AuthState && window.AuthState.setUser) {
-                  window.AuthState.setUser(result.user);
-                }
-                if (window.Router) {
-                  window.Router.goToScreen('s-lang');
-                }
-              } else {
-                alert(result.error || 'Signup failed');
-              }
-            }
-          } else {
-            const email = document.getElementById('authEmail').value;
-            const password = document.getElementById('authPassword').value;
-            
-            if (!email || !password) {
-              alert('Please fill in all fields');
-              return;
-            }
-            
-            // Call login
-            if (window.EmailAuth && window.EmailAuth.login) {
-              const result = await window.EmailAuth.login(email, password);
-              if (result.success) {
-                if (window.AuthState && window.AuthState.setUser) {
-                  window.AuthState.setUser(result.user);
-                }
-                if (window.Router) {
-                  window.Router.goToScreen('s-lang');
-                }
-              } else {
-                alert(result.error || 'Login failed');
-              }
-            }
-          }
-        });
+        authForm.addEventListener('submit', window.handleAuthSubmit);
+        if (window.Logger) {
+          window.Logger.info('Form handler attached');
+        }
+      } else {
+        console.error('authForm not found');
       }
     });
   </script>

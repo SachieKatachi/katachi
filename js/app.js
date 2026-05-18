@@ -6,6 +6,13 @@
 
 // Use window.Logger directly (don't destructure)
 function initializeApp() {
+  // Wait for CONFIG to be loaded
+  if (typeof CONFIG === 'undefined') {
+    console.log('Waiting for CONFIG...');
+    setTimeout(initializeApp, 100);
+    return;
+  }
+
   window.Logger.info('Initializing Katachi app', { version: CONFIG.version });
 
   // Check authentication on app start

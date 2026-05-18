@@ -263,7 +263,7 @@ const DOMUtil = (() => {
     showError, clearError,
   };
 })();
-window.Logger = Logger();
-window.StorageUtil = StorageUtil();
-window.Validators = Validators();
-window.DOMUtil = DOMUtil();
+window.Logger = Logger;
+window.StorageUtil = StorageUtil;
+window.Validators = Validators;
+window.DOMUtil = DOMUtil;

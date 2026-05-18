@@ -1,176 +1,179 @@
-/* ============================================================================
-   AUTHENTICATION & LANDING PAGE STYLES
-   ============================================================================ */
+/* Katachi Auth Styles - Original Design */
 
-/* Screen containers */
-.screen {
-  display: none;
-  width: 100%;
-  min-height: 100vh;
-}
-
-.screen.active {
-  display: flex;
-}
-
-/* ============================================================================
-   LANDING PAGE
-   ============================================================================ */
-
+/* Landing Page */
 #s-land {
-  display: flex;
+  background: #0F0800;
   align-items: center;
   justify-content: center;
-  background: var(--bg);
-  min-height: 100vh;
+  text-align: center;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
 }
 
-.landing-container {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
+#s-land::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 20% 50%, rgba(190, 0, 0, 0.18) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 30%, rgba(218, 165, 32, 0.12) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+#s-land::after {
+  content: '形';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(120px, 28vw, 260px);
+  color: rgba(218, 165, 32, 0.05);
+  pointer-events: none;
+  line-height: 1;
+  white-space: nowrap;
+  z-index: 0;
 }
 
 .landing-content {
-  text-align: center;
-  max-width: 600px;
+  position: relative;
+  z-index: 1;
+  max-width: 560px;
 }
 
 .logo-circle {
-  width: 120px;
-  height: 120px;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 1.5rem;
   border: 3px solid var(--gold-b);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 30px;
+  font-family: 'Cormorant Garamond', serif;
   font-size: 48px;
   color: var(--gold-b);
 }
 
 .brand-name {
-  font-size: 56px;
-  font-weight: 300;
-  letter-spacing: 8px;
-  margin: 20px 0;
-  color: var(--ink);
+  font-family: 'DM Sans', sans-serif;
+  font-size: clamp(32px, 8vw, 52px);
+  font-weight: 200;
+  letter-spacing: 12px;
+  color: white;
+  margin-bottom: 4px;
 }
 
 .brand-subtitle {
-  font-size: 24px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 17px;
   color: var(--gold-b);
-  margin-bottom: 20px;
+  letter-spacing: 8px;
+  margin-bottom: 1.25rem;
 }
 
 .brand-description {
-  font-size: 16px;
-  color: var(--ink-muted);
-  margin-bottom: 40px;
-  line-height: 1.8;
+  font-size: 14px;
+  color: rgba(250, 246, 238, 0.5);
+  font-weight: 300;
+  line-height: 1.75;
+  margin-bottom: 2.5rem;
 }
 
 .cta-buttons {
   display: flex;
-  gap: 15px;
+  gap: 10px;
   justify-content: center;
-  margin-bottom: 40px;
   flex-wrap: wrap;
-}
-
-.btn {
-  padding: 12px 32px;
-  border: none;
-  border-radius: var(--rs);
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--duration-normal) var(--ease);
-  font-family: var(--font-sans);
+  margin-bottom: 2rem;
 }
 
 .btn-primary {
-  background-color: var(--scarlet);
+  padding: 13px 30px;
+  border-radius: 6px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  background: #BE0000;
   color: white;
+  transition: all 0.15s;
+  letter-spacing: 0.04em;
 }
 
 .btn-primary:hover {
-  background-color: var(--scarlet-d);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
+  background: #8C0000;
 }
 
 .btn-secondary {
-  background-color: transparent;
-  color: var(--ink);
-  border: 2px solid var(--ink-muted);
+  padding: 13px 30px;
+  border-radius: 6px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid rgba(250, 246, 238, 0.2);
+  background: transparent;
+  color: rgba(250, 246, 238, 0.7);
+  transition: all 0.15s;
+  letter-spacing: 0.04em;
 }
 
 .btn-secondary:hover {
-  border-color: var(--ink);
-  color: var(--ink);
-}
-
-.btn-large {
-  padding: 16px 48px;
-  font-size: 18px;
-  width: 100%;
-  max-width: 300px;
-}
-
-.btn-full {
-  width: 100%;
-}
-
-.btn-small {
-  padding: 8px 16px;
-  font-size: 14px;
+  color: white;
+  border-color: rgba(250, 246, 238, 0.5);
 }
 
 .pricing-info {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   justify-content: center;
-  margin-bottom: 30px;
   flex-wrap: wrap;
+  margin-bottom: 1.5rem;
 }
 
 .tier-badge {
-  background-color: var(--bg2);
-  color: var(--ink);
-  padding: 8px 16px;
-  border-radius: var(--rs);
-  font-size: 14px;
-  font-weight: 500;
-  border: 1px solid var(--border);
+  padding: 5px 13px;
+  border-radius: 20px;
+  font-size: 11px;
+  border: 1px solid rgba(250, 246, 238, 0.12);
+  color: rgba(250, 246, 238, 0.45);
 }
 
 .tier-badge.multi {
-  background-color: var(--gold-b);
-  color: var(--ink);
+  border-color: rgba(218, 165, 32, 0.3);
+  color: var(--gold-b);
 }
 
 .trial-text {
-  font-size: 13px;
-  color: var(--ink-muted);
+  font-size: 11px;
+  color: rgba(250, 246, 238, 0.25);
+  letter-spacing: 0.06em;
 }
 
-/* ============================================================================
-   AUTH PAGE
-   ============================================================================ */
-
+/* Auth Screen */
 #s-auth {
-  display: flex;
+  background: #0F0800;
   align-items: center;
   justify-content: center;
-  background: var(--bg);
-  padding: 20px;
-  min-height: 100vh;
+  padding: 2rem;
+  position: relative;
+}
+
+#s-auth::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 20% 50%, rgba(190, 0, 0, 0.12) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 30%, rgba(218, 165, 32, 0.08) 0%, transparent 50%);
+  pointer-events: none;
 }
 
 .auth-container {
+  position: relative;
+  z-index: 1;
   width: 100%;
   display: flex;
   align-items: center;
@@ -178,229 +181,184 @@
 }
 
 .auth-box {
-  background-color: var(--surface);
-  border: 1px solid var(--border-s);
-  border-radius: var(--r);
-  padding: 40px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(250, 246, 238, 0.1);
+  border-radius: 10px;
+  padding: 2.5rem;
   width: 100%;
   max-width: 400px;
-  box-shadow: var(--shadow-lg);
 }
 
 .auth-header {
-  margin-bottom: 30px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 1.75rem;
 }
 
 .auth-header h2 {
-  font-size: 28px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 20px;
+  font-weight: 200;
+  color: white;
+  letter-spacing: 7px;
   margin: 0;
-  color: var(--ink);
-  font-weight: 600;
 }
 
 .back-btn {
   background: none;
   border: none;
-  color: var(--ink-muted);
+  color: rgba(250, 246, 238, 0.4);
+  font-size: 14px;
   cursor: pointer;
-  font-size: 16px;
-  padding: 0;
+  transition: color 0.15s;
+  font-family: 'DM Sans', sans-serif;
 }
 
 .back-btn:hover {
-  color: var(--ink);
-}
-
-.auth-form {
-  margin-bottom: 25px;
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 8px;
-  color: var(--ink);
-  font-weight: 500;
-  font-size: 14px;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid var(--border-s);
-  border-radius: var(--rs);
-  background-color: var(--bg);
-  color: var(--ink);
-  font-size: 14px;
-  font-family: var(--font-sans);
-  transition: border-color var(--duration-fast);
-}
-
-.form-group input:focus {
-  outline: none;
-  border-color: var(--gold-b);
-  box-shadow: 0 0 0 3px var(--gold-l);
-}
-
-.error-message {
-  color: var(--error);
-  font-size: 12px;
-  margin-top: 4px;
-  display: none;
-}
-
-.error-message.show {
-  display: block;
+  color: rgba(250, 246, 238, 0.6);
 }
 
 .auth-tabs {
   display: flex;
-  gap: 10px;
-  margin-top: 30px;
-  border-top: 1px solid var(--border-s);
-  padding-top: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  padding: 3px;
+  margin-bottom: 1.25rem;
+  margin-top: 1.25rem;
 }
 
 .auth-tab {
   flex: 1;
-  padding: 10px;
-  background: none;
-  border: none;
-  color: var(--ink-muted);
+  padding: 8px;
+  text-align: center;
+  font-size: 13px;
+  color: rgba(250, 246, 238, 0.4);
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  border-bottom: 3px solid transparent;
-  transition: all var(--duration-fast);
-  font-family: var(--font-sans);
+  border-radius: 4px;
+  transition: all 0.15s;
+  font-family: 'DM Sans', sans-serif;
+  border: none;
+  background: none;
 }
 
 .auth-tab.active {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
 }
 
-.auth-tab:hover {
-  color: var(--ink);
+.form-group {
+  margin-bottom: 0.875rem;
 }
 
-/* ============================================================================
-   LANGUAGE SELECT
-   ============================================================================ */
+.form-group label {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(250, 246, 238, 0.45);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
 
+.form-group input {
+  width: 100%;
+  padding: 10px 13px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(250, 246, 238, 0.12);
+  border-radius: 6px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: white;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.form-group input::placeholder {
+  color: rgba(250, 246, 238, 0.22);
+}
+
+.form-group input:focus {
+  border-color: #BE0000;
+}
+
+.error-message {
+  font-size: 12px;
+  color: #BE0000;
+  margin-top: 4px;
+}
+
+.btn-full {
+  width: 100%;
+  padding: 12px;
+  background: #BE0000;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-top: 4px;
+  letter-spacing: 0.04em;
+}
+
+.btn-full:hover {
+  background: #8C0000;
+}
+
+/* Language Screen */
 #s-lang {
-  display: flex;
+  background: #0F0800;
   align-items: center;
   justify-content: center;
-  background: var(--bg);
-  min-height: 100vh;
+  padding: 2rem;
+  position: relative;
 }
 
 .lang-container {
+  position: relative;
+  z-index: 1;
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
 }
 
 .lang-box {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(250, 246, 238, 0.1);
+  border-radius: 10px;
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 440px;
   text-align: center;
-  max-width: 300px;
 }
 
 .lang-box h2 {
-  font-size: 28px;
-  margin-bottom: 30px;
-  color: var(--ink);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 26px;
+  color: white;
+  margin-bottom: 2rem;
 }
 
-.lang-box button {
-  display: block;
-  margin: 15px auto;
+.lang-box .btn-large {
+  width: 100%;
+  padding: 12px;
+  background: #BE0000;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  margin-bottom: 10px;
+  transition: background 0.15s;
 }
 
-/* ============================================================================
-   APP SCREEN
-   ============================================================================ */
-
-#s-app {
-  display: flex;
-  flex-direction: column;
-}
-
-.app-layout {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  background-color: var(--bg);
-}
-
-.app-header {
-  background-color: var(--surface);
-  border-bottom: 1px solid var(--border-s);
-  padding: 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.app-header h1 {
-  margin: 0;
-  color: var(--ink);
-  font-size: 24px;
-}
-
-.app-content {
-  flex: 1;
-  padding: 30px;
-  color: var(--ink);
-}
-
-/* ============================================================================
-   RESPONSIVE
-   ============================================================================ */
-
-@media (max-width: 768px) {
-  .landing-content {
-    max-width: 100%;
-  }
-
-  .brand-name {
-    font-size: 40px;
-    letter-spacing: 6px;
-  }
-
-  .logo-circle {
-    width: 100px;
-    height: 100px;
-    font-size: 36px;
-  }
-
-  .cta-buttons {
-    flex-direction: column;
-  }
-
-  .btn {
-    width: 100%;
-  }
-
-  .auth-box {
-    padding: 30px 20px;
-  }
-
-  .pricing-info {
-    flex-direction: column;
-  }
-
-  .tier-badge {
-    width: 100%;
-    text-align: center;
-  }
+.lang-box .btn-large:hover {
+  background: #8C0000;
 }

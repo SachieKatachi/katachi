@@ -1,0 +1,68 @@
+/* Katachi App Styles - Original Design */
+
+#s-app {
+  background: #0F0800;
+  display: flex !important;
+  flex-direction: column;
+}
+
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.app-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 52px;
+  background: var(--scarlet);
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+  z-index: 200;
+  gap: 10px;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.app-header h1 {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 200;
+  color: white;
+  letter-spacing: 5px;
+  margin: 0;
+}
+
+.app-header .btn-small {
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.app-header .btn-small:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.app-content {
+  margin-top: 52px;
+  flex: 1;
+  padding: 2rem;
+  color: rgba(250, 246, 238, 0.8);
+}
+
+.app-content p {
+  font-size: 14px;
+  font-family: 'DM Sans', sans-serif;
+}

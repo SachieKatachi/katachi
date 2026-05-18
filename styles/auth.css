@@ -21,7 +21,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #1a1410 0%, #2d1810 100%);
+  background: var(--bg);
+  min-height: 100vh;
 }
 
 .landing-container {
@@ -40,14 +41,14 @@
 .logo-circle {
   width: 120px;
   height: 120px;
-  border: 3px solid var(--accent-gold);
+  border: 3px solid var(--gold-b);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto 30px;
   font-size: 48px;
-  color: var(--accent-gold);
+  color: var(--gold-b);
 }
 
 .brand-name {
@@ -55,18 +56,18 @@
   font-weight: 300;
   letter-spacing: 8px;
   margin: 20px 0;
-  color: var(--text-primary);
+  color: var(--ink);
 }
 
 .brand-subtitle {
   font-size: 24px;
-  color: var(--accent-gold);
+  color: var(--gold-b);
   margin-bottom: 20px;
 }
 
 .brand-description {
   font-size: 16px;
-  color: var(--text-secondary);
+  color: var(--ink-muted);
   margin-bottom: 40px;
   line-height: 1.8;
 }
@@ -82,34 +83,34 @@
 .btn {
   padding: 12px 32px;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--rs);
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  font-family: inherit;
+  transition: all var(--duration-normal) var(--ease);
+  font-family: var(--font-sans);
 }
 
 .btn-primary {
-  background-color: var(--error-red);
+  background-color: var(--scarlet);
   color: white;
 }
 
 .btn-primary:hover {
-  background-color: #d32f2f;
+  background-color: var(--scarlet-d);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
+  box-shadow: var(--shadow-lg);
 }
 
 .btn-secondary {
   background-color: transparent;
-  color: var(--text-primary);
-  border: 2px solid var(--text-secondary);
+  color: var(--ink);
+  border: 2px solid var(--ink-muted);
 }
 
 .btn-secondary:hover {
-  border-color: var(--text-primary);
-  color: var(--text-primary);
+  border-color: var(--ink);
+  color: var(--ink);
 }
 
 .btn-large {
@@ -137,22 +138,23 @@
 }
 
 .tier-badge {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: var(--text-primary);
+  background-color: var(--bg2);
+  color: var(--ink);
   padding: 8px 16px;
-  border-radius: 4px;
+  border-radius: var(--rs);
   font-size: 14px;
   font-weight: 500;
+  border: 1px solid var(--border);
 }
 
 .tier-badge.multi {
-  background-color: var(--accent-gold);
-  color: #000;
+  background-color: var(--gold-b);
+  color: var(--ink);
 }
 
 .trial-text {
   font-size: 13px;
-  color: var(--text-secondary);
+  color: var(--ink-muted);
 }
 
 /* ============================================================================
@@ -163,8 +165,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #1a1410 0%, #2d1810 100%);
+  background: var(--bg);
   padding: 20px;
+  min-height: 100vh;
 }
 
 .auth-container {
@@ -175,13 +178,13 @@
 }
 
 .auth-box {
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
+  background-color: var(--surface);
+  border: 1px solid var(--border-s);
+  border-radius: var(--r);
   padding: 40px;
   width: 100%;
   max-width: 400px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-lg);
 }
 
 .auth-header {
@@ -194,21 +197,21 @@
 .auth-header h2 {
   font-size: 28px;
   margin: 0;
-  color: var(--text-primary);
+  color: var(--ink);
   font-weight: 600;
 }
 
 .back-btn {
   background: none;
   border: none;
-  color: var(--text-secondary);
+  color: var(--ink-muted);
   cursor: pointer;
   font-size: 16px;
   padding: 0;
 }
 
 .back-btn:hover {
-  color: var(--text-primary);
+  color: var(--ink);
 }
 
 .auth-form {
@@ -222,7 +225,7 @@
 .form-group label {
   display: block;
   margin-bottom: 8px;
-  color: var(--text-primary);
+  color: var(--ink);
   font-weight: 500;
   font-size: 14px;
 }
@@ -230,23 +233,23 @@
 .form-group input {
   width: 100%;
   padding: 12px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
+  border: 1px solid var(--border-s);
+  border-radius: var(--rs);
+  background-color: var(--bg);
+  color: var(--ink);
   font-size: 14px;
-  font-family: inherit;
-  transition: border-color 0.3s ease;
+  font-family: var(--font-sans);
+  transition: border-color var(--duration-fast);
 }
 
 .form-group input:focus {
   outline: none;
-  border-color: var(--accent-gold);
-  box-shadow: 0 0 0 3px rgba(218, 165, 32, 0.1);
+  border-color: var(--gold-b);
+  box-shadow: 0 0 0 3px var(--gold-l);
 }
 
 .error-message {
-  color: var(--error-red);
+  color: var(--error);
   font-size: 12px;
   margin-top: 4px;
   display: none;
@@ -260,7 +263,7 @@
   display: flex;
   gap: 10px;
   margin-top: 30px;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-s);
   padding-top: 20px;
 }
 
@@ -269,22 +272,22 @@
   padding: 10px;
   background: none;
   border: none;
-  color: var(--text-secondary);
+  color: var(--ink-muted);
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
   border-bottom: 3px solid transparent;
-  transition: all 0.3s ease;
-  font-family: inherit;
+  transition: all var(--duration-fast);
+  font-family: var(--font-sans);
 }
 
 .auth-tab.active {
-  color: var(--accent-gold);
-  border-bottom-color: var(--accent-gold);
+  color: var(--accent);
+  border-bottom-color: var(--accent);
 }
 
 .auth-tab:hover {
-  color: var(--text-primary);
+  color: var(--ink);
 }
 
 /* ============================================================================
@@ -295,7 +298,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #1a1410 0%, #2d1810 100%);
+  background: var(--bg);
+  min-height: 100vh;
 }
 
 .lang-container {
@@ -314,7 +318,7 @@
 .lang-box h2 {
   font-size: 28px;
   margin-bottom: 30px;
-  color: var(--text-primary);
+  color: var(--ink);
 }
 
 .lang-box button {
@@ -335,12 +339,12 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: var(--bg-primary);
+  background-color: var(--bg);
 }
 
 .app-header {
-  background-color: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border-s);
   padding: 20px;
   display: flex;
   justify-content: space-between;
@@ -349,14 +353,14 @@
 
 .app-header h1 {
   margin: 0;
-  color: var(--text-primary);
+  color: var(--ink);
   font-size: 24px;
 }
 
 .app-content {
   flex: 1;
   padding: 30px;
-  color: var(--text-primary);
+  color: var(--ink);
 }
 
 /* ============================================================================

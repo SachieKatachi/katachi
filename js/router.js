@@ -9,27 +9,29 @@ const Router = (() => {
   
   function goToScreen(screenId, options = {}) {
     if (!validScreens.includes(screenId)) {
-      Logger.warn('Invalid screen', { screenId });
+      window.Logger.warn('Invalid screen', { screenId });
       return false;
     }
 
     const currentScreen = UIState.getState().currentScreen;
     if (currentScreen === screenId && !options.force) {
-      Logger.debug('Already on screen', { screenId });
+      window.Logger.debug('Already on screen', { screenId });
       return true;
     }
 
     // Hide all screens
     document.querySelectorAll('.screen').forEach(screen => {
       screen.classList.remove('active');
+      screen.style.display = 'none';
     });
 
     // Show target screen
     const targetScreen = document.getElementById(screenId);
     if (targetScreen) {
       targetScreen.classList.add('active');
+      targetScreen.style.display = 'flex';
       UIState.setScreen(screenId);
-      Logger.info('Navigated to screen', { from: currentScreen, to: screenId });
+      window.Logger.info('Navigated to screen', { from: currentScreen, to: screenId });
       
       // Reset scroll position
       if (options.resetScroll !== false) {
@@ -39,25 +41,25 @@ const Router = (() => {
       return true;
     }
 
-    Logger.error('Screen not found', { screenId });
+    window.Logger.error('Screen not found', { screenId });
     return false;
   }
 
   function goToPage(pageId) {
     // Only valid when on app screen
     if (UIState.getState().currentScreen !== 's-app') {
-      Logger.warn('Cannot navigate to page outside app screen', { pageId });
+      window.Logger.warn('Cannot navigate to page outside app screen', { pageId });
       return false;
     }
 
     const validPages = CONFIG.nav.map(n => n.id).concat(['settings', 'pricing']);
     if (!validPages.includes(pageId)) {
-      Logger.warn('Invalid page', { pageId });
+      window.Logger.warn('Invalid page', { pageId });
       return false;
     }
 
     UIState.setPage(pageId);
-    Logger.info('Page changed', { pageId });
+    window.Logger.info('Page changed', { pageId });
     
     // Dispatch custom event
     window.dispatchEvent(new CustomEvent('page-changed', { detail: { pageId } }));
@@ -72,7 +74,7 @@ const Router = (() => {
     const backMap = {
       's-auth': 's-land',
       's-lang': 's-auth',
-      's-app': 's-land', // Would need history for better behavior
+      's-app': 's-land',
     };
 
     const targetScreen = backMap[currentScreen];
@@ -80,7 +82,7 @@ const Router = (() => {
       return goToScreen(targetScreen);
     }
 
-    Logger.warn('Cannot go back from', { currentScreen });
+    window.Logger.warn('Cannot go back from', { currentScreen });
     return false;
   }
 
@@ -103,21 +105,29 @@ const EventDelegation = (() => {
       handlers[action] = [];
     }
     handlers[action].push(handler);
-    Logger.debug('Action registered', { action });
+    if (window.Logger) {
+      window.Logger.debug('Action registered', { action });
+    }
   }
 
   function dispatch(action, data = {}) {
     if (!handlers[action]) {
-      Logger.warn('No handler for action', { action });
+      if (window.Logger) {
+        window.Logger.warn('No handler for action', { action });
+      }
       return false;
     }
 
-    Logger.debug('Action dispatched', { action, data });
+    if (window.Logger) {
+      window.Logger.debug('Action dispatched', { action, data });
+    }
     handlers[action].forEach(handler => {
       try {
         handler(data);
       } catch (err) {
-        Logger.error('Action handler error', { action, error: err.message });
+        if (window.Logger) {
+          window.Logger.error('Action handler error', { action, error: err.message });
+        }
       }
     });
 
@@ -156,118 +166,165 @@ const EventDelegation = (() => {
 // REGISTER ALL NAVIGATION ACTIONS
 // ═══════════════════════════════════════════════════════
 
+// Basic navigation
 EventDelegation.register('nav-land', () => Router.goToScreen('s-land'));
 EventDelegation.register('nav-auth', () => Router.goToScreen('s-auth'));
+EventDelegation.register('nav-signin', () => Router.goToScreen('s-auth'));
 EventDelegation.register('nav-app', () => Router.goToScreen('s-app'));
 
-EventDelegation.register('auth-tab-signup', (data) => {
-  document.getElementById('a-signup').style.display = '';
-  document.getElementById('a-login').style.display = 'none';
-  document.querySelectorAll('.auth-tab').forEach((el, i) => {
-    el.classList.toggle('active', i === 0);
+// Auth tabs
+EventDelegation.register('signup-tab', () => {
+  // Show signup fields
+  const nameField = document.getElementById('nameField');
+  const passwordConfirmField = document.getElementById('passwordConfirmField');
+  const authSubmitBtn = document.getElementById('authSubmitBtn');
+  
+  if (nameField) nameField.style.display = 'block';
+  if (passwordConfirmField) passwordConfirmField.style.display = 'block';
+  if (authSubmitBtn) authSubmitBtn.textContent = 'Sign Up';
+  
+  // Update tab styles
+  document.querySelectorAll('.auth-tab').forEach((tab, i) => {
+    tab.classList.toggle('active', tab.getAttribute('data-tab') === 'signup');
   });
-  DOMUtil.clearError('signupError');
+  
+  if (window.Logger) {
+    window.Logger.debug('Switched to signup mode');
+  }
 });
 
-EventDelegation.register('auth-tab-login', (data) => {
-  document.getElementById('a-signup').style.display = 'none';
-  document.getElementById('a-login').style.display = '';
-  document.querySelectorAll('.auth-tab').forEach((el, i) => {
-    el.classList.toggle('active', i === 1);
+EventDelegation.register('login-tab', () => {
+  // Hide signup fields
+  const nameField = document.getElementById('nameField');
+  const passwordConfirmField = document.getElementById('passwordConfirmField');
+  const authSubmitBtn = document.getElementById('authSubmitBtn');
+  
+  if (nameField) nameField.style.display = 'none';
+  if (passwordConfirmField) passwordConfirmField.style.display = 'none';
+  if (authSubmitBtn) authSubmitBtn.textContent = 'Sign In';
+  
+  // Update tab styles
+  document.querySelectorAll('.auth-tab').forEach((tab, i) => {
+    tab.classList.toggle('active', tab.getAttribute('data-tab') === 'login');
   });
-  DOMUtil.clearError('loginError');
+  
+  if (window.Logger) {
+    window.Logger.debug('Switched to login mode');
+  }
 });
 
+// Language selection
 EventDelegation.register('lang-select', (data) => {
-  UIState.setLanguage(data.lang);
-  document.querySelectorAll('.lang-opt').forEach(el => {
-    el.classList.remove('sel');
-  });
-  document.getElementById('lo-' + data.lang).classList.add('sel');
+  if (UIState && UIState.setLanguage) {
+    UIState.setLanguage(data.lang);
+  }
+  if (window.Logger) {
+    window.Logger.info('Language selected', { lang: data.lang });
+  }
+  // Navigate to app after language selection
+  Router.goToScreen('s-app');
 });
 
-EventDelegation.register('app-init', async () => {
-  UIState.setLoading('app-init', true);
-  try {
-    // Initialize app features
-    if (window.RecipesFeature && window.RecipesFeature.init) {
-      await window.RecipesFeature.init();
-    }
-    Router.goToScreen('s-app');
-  } catch (err) {
-    Logger.error('App init error', { error: err.message });
-  } finally {
-    UIState.setLoading('app-init', false);
+// Logout
+EventDelegation.register('logout', () => {
+  if (AuthState && AuthState.logout) {
+    AuthState.logout();
+  }
+  Router.goToScreen('s-land');
+});
+
+// Auth form submission
+EventDelegation.register('auth-submit', async (data) => {
+  const isSignup = document.getElementById('authSubmitBtn').textContent === 'Sign Up';
+  
+  if (isSignup) {
+    await handleSignup();
+  } else {
+    await handleLogin();
   }
 });
 
-EventDelegation.register('auth-signup', async () => {
-  UIState.setLoading('signup', true);
-  DOMUtil.clearError('signupError');
-
+async function handleSignup() {
+  if (UIState) UIState.setLoading('auth', true);
+  
   try {
-    const formData = {
-      name: document.getElementById('aName').value,
-      email: document.getElementById('aEmail').value,
-      password: document.getElementById('aPassword').value,
-      passwordConfirm: document.getElementById('aPasswordConfirm').value,
-      code: document.getElementById('aCode').value,
-    };
+    const name = document.getElementById('authName')?.value;
+    const email = document.getElementById('authEmail')?.value;
+    const password = document.getElementById('authPassword')?.value;
+    const passwordConfirm = document.getElementById('authPasswordConfirm')?.value;
 
-    const result = await EmailAuth.signup(formData);
-
-    if (result.success) {
-      AuthState.setUser(result.user, { id: result.sessionId });
-      DOMUtil.clearForm('a-signup');
-      Router.goToScreen('s-lang');
-    } else {
-      DOMUtil.showError('signupError', result.error);
+    if (!name || !email || !password || !passwordConfirm) {
+      alert('Please fill in all fields');
+      return;
     }
-  } catch (err) {
-    Logger.error('Signup action error', { error: err.message });
-    DOMUtil.showError('signupError', 'Signup failed. Please try again.');
-  } finally {
-    UIState.setLoading('signup', false);
-  }
-});
 
-EventDelegation.register('auth-login', async () => {
-  UIState.setLoading('login', true);
-  DOMUtil.clearError('loginError');
-
-  try {
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-
-    const result = await EmailAuth.login(email, password);
-
-    if (result.success) {
-      AuthState.setUser(result.user, { id: result.sessionId });
-      DOMUtil.clearForm('a-login');
-      Router.goToScreen('s-lang');
-    } else {
-      DOMUtil.showError('loginError', result.error);
+    if (password !== passwordConfirm) {
+      alert('Passwords do not match');
+      return;
     }
-  } catch (err) {
-    Logger.error('Login action error', { error: err.message });
-    DOMUtil.showError('loginError', 'Login failed. Please try again.');
-  } finally {
-    UIState.setLoading('login', false);
-  }
-});
 
-EventDelegation.register('auth-forgot', () => {
-  const email = prompt('Enter your email to reset password:');
-  if (email) {
-    UIState.setLoading('forgot', true);
-    EmailAuth.requestPasswordReset(email)
-      .then(result => {
-        if (result.success) {
-          alert(result.message);
-        } else {
-          alert(result.error);
+    if (EmailAuth && EmailAuth.signup) {
+      const result = await EmailAuth.signup({
+        name,
+        email,
+        password,
+      });
+
+      if (result.success) {
+        if (AuthState && AuthState.setUser) {
+          AuthState.setUser(result.user);
         }
-      })
-      .finally(() => UIState.setLoading('forgot', false));
+        Router.goToScreen('s-lang');
+        if (window.Logger) {
+          window.Logger.info('Signup successful');
+        }
+      } else {
+        alert(result.error || 'Signup failed');
+      }
+    }
+  } catch (err) {
+    if (window.Logger) {
+      window.Logger.error('Signup error', { error: err.message });
+    }
+    alert('Signup failed: ' + err.message);
+  } finally {
+    if (UIState) UIState.setLoading('auth', false);
   }
-});
+}
+
+async function handleLogin() {
+  if (UIState) UIState.setLoading('auth', true);
+  
+  try {
+    const email = document.getElementById('authEmail')?.value;
+    const password = document.getElementById('authPassword')?.value;
+
+    if (!email || !password) {
+      alert('Please fill in all fields');
+      return;
+    }
+
+    if (EmailAuth && EmailAuth.login) {
+      const result = await EmailAuth.login(email, password);
+
+      if (result.success) {
+        if (AuthState && AuthState.setUser) {
+          AuthState.setUser(result.user);
+        }
+        Router.goToScreen('s-lang');
+        if (window.Logger) {
+          window.Logger.info('Login successful');
+        }
+      } else {
+        alert(result.error || 'Login failed');
+      }
+    }
+  } catch (err) {
+    if (window.Logger) {
+      window.Logger.error('Login error', { error: err.message });
+    }
+    alert('Login failed: ' + err.message);
+  } finally {
+    if (UIState) UIState.setLoading('auth', false);
+  }
+}

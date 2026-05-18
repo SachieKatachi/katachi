@@ -4,11 +4,10 @@
  * Runs after all modules are loaded
  */
 
-// Use window.Logger directly (don't destructure)
 function initializeApp() {
-  // Wait for CONFIG to be loaded
-  if (typeof CONFIG === 'undefined') {
-    console.log('Waiting for CONFIG...');
+  // Wait for all dependencies to load
+  if (typeof CONFIG === 'undefined' || typeof window.Logger === 'undefined') {
+    console.log('Waiting for modules to load...');
     setTimeout(initializeApp, 100);
     return;
   }
@@ -25,35 +24,38 @@ function initializeApp() {
     Router.goToScreen('s-land');
   }
 
-  // Subscribe to state changes for debugging
-  if (window.CONFIG && CONFIG.debug.showStateUpdates) {
+  // Subscribe to state changes for debugging (only if CONFIG is ready)
+  if (window.CONFIG && CONFIG.debug && CONFIG.debug.showStateUpdates) {
     AuthState.subscribe((authState) => {
       console.log('[AUTH STATE]', authState);
     });
+
+    UIState.subscribe((uiState) => {
+      console.log('[UI STATE]', uiState);
+    });
+
+    AppState.subscribe((appState) => {
+      console.log('[APP STATE]', appState.recipes.length + ' recipes');
+    });
   }
-
-  UIState.subscribe((uiState) => {
-    console.log('[UI STATE]', uiState);
-  });
-
-  AppState.subscribe((appState) => {
-    console.log('[APP STATE]', appState.recipes.length + ' recipes');
-  });
 }
 
 // Handle theme changes
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-  if (!StorageUtil.getItem(CONFIG.storage.preferences)?.themeOverride) {
-    UIState.setTheme(e.matches ? 'dark' : 'light');
-  }
-});
+if (window.matchMedia) {
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+    const storedTheme = StorageUtil.getItem(CONFIG.storage.preferences);
+    if (!storedTheme || !storedTheme.themeOverride) {
+      UIState.setTheme(e.matches ? 'dark' : 'light');
+    }
+  });
+}
 
 // Handle keyboard shortcuts
 document.addEventListener('keydown', (e) => {
   // ESC closes modals
   if (e.key === 'Escape') {
-    const openModal = UIState.getState().openModals.length;
-    if (openModal > 0) {
+    const openModals = UIState.getState().openModals;
+    if (openModals && openModals.length > 0) {
       UIState.closeModal();
       window.Logger.debug('Modal closed via ESC');
     }
@@ -62,11 +64,11 @@ document.addEventListener('keydown', (e) => {
   // Ctrl+K / Cmd+K for search (future feature)
   if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
     e.preventDefault();
-    EventDelegation.dispatch('search-open');
+    if (EventDelegation && EventDelegation.dispatch) {
+      EventDelegation.dispatch('search-open');
+    }
   }
 });
-
-window.Logger.info('App initialized successfully');
 
 // Wait for DOM to be ready
 if (document.readyState === 'loading') {
@@ -77,19 +79,23 @@ if (document.readyState === 'loading') {
 
 // Global error handling
 window.addEventListener('error', (event) => {
-  window.Logger.error('Uncaught error', {
-    message: event.message,
-    filename: event.filename,
-    lineno: event.lineno,
-  });
+  if (window.Logger) {
+    window.Logger.error('Uncaught error', {
+      message: event.message,
+      filename: event.filename,
+      lineno: event.lineno,
+    });
+  }
 });
 
 window.addEventListener('unhandledrejection', (event) => {
-  window.Logger.error('Unhandled promise rejection', {
-    reason: event.reason?.message || event.reason,
-  });
+  if (window.Logger) {
+    window.Logger.error('Unhandled promise rejection', {
+      reason: event.reason?.message || event.reason,
+    });
+  }
 });
 
 // Expose logging for debugging
-window.getLogs = () => window.Logger.getLogs();
-window.clearLogs = () => window.Logger.clearLogs();
+window.getLogs = () => window.Logger ? window.Logger.getLogs() : [];
+window.clearLogs = () => { if (window.Logger) window.Logger.clearLogs(); };

@@ -73,7 +73,7 @@ const CONFIG = {
 
   // API ENDPOINTS (if using backend)
   api: {
-    baseUrl: process.env.API_URL || 'https://api.getkatachi.app',
+    baseUrl: 'https://api.getkatachi.app',
     endpoints: {
       auth: '/api/auth',
       recipes: '/api/recipes',

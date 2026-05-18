@@ -1,5 +1,5 @@
 /**
- * EMAIL AUTH MODULE - HYBRID VERSION
+ * EMAIL AUTH MODULE - HYBRID VERSION (FIXED)
  * Works immediately with localStorage
  * Syncs with Supabase in background
  */
@@ -19,7 +19,7 @@ const EmailAuth = (() => {
   }
 
   // Try to sync with Supabase (background, non-blocking)
-  async function syncToSupabase(action, data) {
+  function syncToSupabase(action, data) {
     try {
       const endpoint = action === 'signup' ? 'signup' : 'token?grant_type=password';
       const body = action === 'signup' 
@@ -36,20 +36,16 @@ const EmailAuth = (() => {
         },
         body: JSON.stringify(body)
       }).then(r => r.json()).then(d => {
-        if (window.Logger) {
-          window.Logger.debug('Supabase sync result', { action, status: 'done' });
-        }
+        console.log('Supabase sync: OK');
       }).catch(e => {
-        if (window.Logger) {
-          window.Logger.debug('Supabase sync skipped (working offline)', { action });
-        }
+        console.log('Supabase sync: offline mode');
       });
     } catch (err) {
-      // Silent fail - app continues to work
+      // Silent fail
     }
   }
 
-  async function signup(formData) {
+  const signup = async function(formData) {
     try {
       const { name, email, password } = formData;
 
@@ -77,9 +73,7 @@ const EmailAuth = (() => {
       };
       saveUsers(users);
 
-      if (window.Logger) {
-        window.Logger.info('Signup successful', { email });
-      }
+      console.log('Signup successful:', email);
 
       // Sync to Supabase in background (non-blocking)
       syncToSupabase('signup', { name, email, password });
@@ -90,11 +84,12 @@ const EmailAuth = (() => {
         sessionId: 'session_' + Date.now()
       };
     } catch (err) {
+      console.error('Signup error:', err);
       return { success: false, error: err.message };
     }
-  }
+  };
 
-  async function login(email, password) {
+  const login = async function(email, password) {
     try {
       if (!email || !password) {
         return { success: false, error: 'Email and password required' };
@@ -112,9 +107,7 @@ const EmailAuth = (() => {
         return { success: false, error: 'Invalid password' };
       }
 
-      if (window.Logger) {
-        window.Logger.info('Login successful', { email });
-      }
+      console.log('Login successful:', email);
 
       // Sync to Supabase in background
       syncToSupabase('login', { email, password });
@@ -129,18 +122,24 @@ const EmailAuth = (() => {
         sessionId: 'session_' + Date.now()
       };
     } catch (err) {
+      console.error('Login error:', err);
       return { success: false, error: err.message };
     }
-  }
+  };
 
-  function logout() {
+  const logout = function() {
     localStorage.removeItem('katachi_session');
-  }
+    console.log('Logged out');
+  };
 
   return {
-    signup,
-    login,
-    logout,
+    signup: signup,
+    login: login,
+    logout: logout,
     requestPasswordReset: async (email) => ({ success: true })
   };
 })();
+
+// CRITICAL: Export to window so it's accessible
+window.EmailAuth = EmailAuth;
+console.log('EmailAuth module loaded:', typeof window.EmailAuth);

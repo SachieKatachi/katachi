@@ -47,35 +47,35 @@
       <div class="auth-box">
         <div class="auth-header">
           <h2>Sign Up / Sign In</h2>
-          <button class="back-btn" data-action="nav-land">← Back</button>
+          <button class="back-btn" data-action="nav-land" type="button">← Back</button>
         </div>
         
         <form id="authForm" class="auth-form">
           <!-- NAME FIELD (Signup only) -->
           <div id="nameField" class="form-group" style="display: none;">
             <label for="authName">Full Name</label>
-            <input type="text" id="authName" data-field="name" placeholder="Chef Alice">
+            <input type="text" id="authName" placeholder="Chef Alice">
             <div id="nameError" class="error-message"></div>
           </div>
           
           <!-- EMAIL FIELD -->
           <div class="form-group">
             <label for="authEmail">Email</label>
-            <input type="email" id="authEmail" data-field="email" placeholder="chef@restaurant.com">
+            <input type="email" id="authEmail" placeholder="chef@restaurant.com" required>
             <div id="emailError" class="error-message"></div>
           </div>
           
           <!-- PASSWORD FIELD -->
           <div class="form-group">
             <label for="authPassword">Password</label>
-            <input type="password" id="authPassword" data-field="password" placeholder="••••••••">
+            <input type="password" id="authPassword" placeholder="••••••••" required>
             <div id="passwordError" class="error-message"></div>
           </div>
           
           <!-- PASSWORD CONFIRM (Signup only) -->
           <div id="passwordConfirmField" class="form-group" style="display: none;">
             <label for="authPasswordConfirm">Confirm Password</label>
-            <input type="password" id="authPasswordConfirm" data-field="passwordConfirm" placeholder="••••••••">
+            <input type="password" id="authPasswordConfirm" placeholder="••••••••">
             <div id="passwordConfirmError" class="error-message"></div>
           </div>
           
@@ -85,8 +85,8 @@
         
         <!-- TAB TOGGLE -->
         <div class="auth-tabs">
-          <button class="auth-tab active" data-tab="signup" type="button">Sign Up</button>
-          <button class="auth-tab" data-tab="login" type="button">Sign In</button>
+          <button type="button" class="auth-tab active" data-tab="signup" data-action="signup-tab">Sign Up</button>
+          <button type="button" class="auth-tab" data-tab="login" data-action="login-tab">Sign In</button>
         </div>
       </div>
     </div>
@@ -108,7 +108,7 @@
     <div class="app-layout">
       <header class="app-header">
         <h1>Katachi</h1>
-        <button id="logoutBtn" class="btn btn-small" data-action="logout">Logout</button>
+        <button type="button" class="btn btn-small" data-action="logout">Logout</button>
       </header>
       <main class="app-content">
         <p>Welcome to Katachi App</p>
@@ -126,6 +126,75 @@
   <script src="./js/state.js"></script>
   <script src="./js/router.js"></script>
   <script src="./js/app.js"></script>
+  
+  <!-- Form submission handler -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const authForm = document.getElementById('authForm');
+      if (authForm) {
+        authForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          
+          const isSignup = document.getElementById('authSubmitBtn').textContent === 'Sign Up';
+          
+          if (isSignup) {
+            const name = document.getElementById('authName').value;
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPassword').value;
+            const passwordConfirm = document.getElementById('authPasswordConfirm').value;
+            
+            if (!name || !email || !password || !passwordConfirm) {
+              alert('Please fill in all fields');
+              return;
+            }
+            
+            if (password !== passwordConfirm) {
+              alert('Passwords do not match');
+              return;
+            }
+            
+            // Call signup
+            if (window.EmailAuth && window.EmailAuth.signup) {
+              const result = await window.EmailAuth.signup({ name, email, password });
+              if (result.success) {
+                if (window.AuthState && window.AuthState.setUser) {
+                  window.AuthState.setUser(result.user);
+                }
+                if (window.Router) {
+                  window.Router.goToScreen('s-lang');
+                }
+              } else {
+                alert(result.error || 'Signup failed');
+              }
+            }
+          } else {
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPassword').value;
+            
+            if (!email || !password) {
+              alert('Please fill in all fields');
+              return;
+            }
+            
+            // Call login
+            if (window.EmailAuth && window.EmailAuth.login) {
+              const result = await window.EmailAuth.login(email, password);
+              if (result.success) {
+                if (window.AuthState && window.AuthState.setUser) {
+                  window.AuthState.setUser(result.user);
+                }
+                if (window.Router) {
+                  window.Router.goToScreen('s-lang');
+                }
+              } else {
+                alert(result.error || 'Login failed');
+              }
+            }
+          }
+        });
+      }
+    });
+  </script>
 
 </body>
 </html>

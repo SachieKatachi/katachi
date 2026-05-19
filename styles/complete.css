@@ -165,7 +165,7 @@ body::before {
 .land-kj {
   font-family: 'Cormorant Garamond', serif;
   font-size: 28px;
-  color: var(--scarlet);
+  color: var(--gold);
   margin-bottom: 20px;
   letter-spacing: 4px;
 }
@@ -209,14 +209,18 @@ body::before {
 }
 
 .btn-lp.o {
-  background: transparent;
-  color: var(--current-ink);
-  border: 1px solid var(--current-ink);
+  background: var(--gold);
+  color: var(--current-bg);
+  border: 2px solid var(--gold);
+  font-weight: 600;
 }
 
 .btn-lp.o:hover {
-  background: var(--current-ink);
-  color: var(--current-bg);
+  background: transparent;
+  color: var(--gold);
+  border: 2px solid var(--gold);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(218, 165, 32, 0.3);
 }
 
 .land-pills {

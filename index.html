@@ -8,8 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=DM+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
   
-  <!-- bcryptjs - MUST LOAD FIRST -->
-  <script async src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.js"></script>
+  <!-- bcryptjs - MUST LOAD FIRST (sync, not async) -->
+  <script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.js"></script>
   
   <!-- Core Styles -->
   <link rel="stylesheet" href="./styles/variables.css">
@@ -320,16 +320,7 @@
 <!-- Core Systems -->
 <script src="./js/config.js"></script>
 <script src="./js/utilities.js"></script>
-
-<!-- Client-Side Auth (AFTER bcryptjs loads) -->
-<script>
-// Wait for bcryptjs to load before loading ClientAuth
-window.addEventListener('load', () => {
-  const script = document.createElement('script');
-  script.src = './js/clientAuth.js';
-  document.body.appendChild(script);
-});
-</script>
+<script src="./js/clientAuth.js"></script>
 
 <!-- Feature Modules -->
 <script src="./js/i18n.js"></script>
@@ -513,18 +504,6 @@ const AppUI = (() => {
       return;
     }
 
-    // Wait for bcryptjs to be available
-    let attempts = 0;
-    while (!window.bcrypt && attempts < 50) {
-      await new Promise(resolve => setTimeout(resolve, 100));
-      attempts++;
-    }
-
-    if (!window.bcrypt) {
-      messageEl.innerHTML = '<div class="error">Encryption library failed to load. Please refresh the page.</div>';
-      return;
-    }
-
     // Call ClientAuth
     const result = await window.ClientAuth.signup(email, password, name);
 
@@ -544,18 +523,6 @@ const AppUI = (() => {
     const email = document.getElementById('auth-email-login').value;
     const password = document.getElementById('auth-password-login').value;
     const messageEl = document.getElementById('login-message');
-
-    // Wait for bcryptjs to be available
-    let attempts = 0;
-    while (!window.bcrypt && attempts < 50) {
-      await new Promise(resolve => setTimeout(resolve, 100));
-      attempts++;
-    }
-
-    if (!window.bcrypt) {
-      messageEl.innerHTML = '<div class="error">Encryption library failed to load. Please refresh the page.</div>';
-      return;
-    }
 
     const result = await window.ClientAuth.login(email, password);
 
@@ -581,18 +548,6 @@ const AppUI = (() => {
     // Validate
     if (newPass !== confirm) {
       messageEl.innerHTML = '<div class="error">New passwords do not match</div>';
-      return;
-    }
-
-    // Wait for bcryptjs to be available
-    let attempts = 0;
-    while (!window.bcrypt && attempts < 50) {
-      await new Promise(resolve => setTimeout(resolve, 100));
-      attempts++;
-    }
-
-    if (!window.bcrypt) {
-      messageEl.innerHTML = '<div class="error">Encryption library failed to load. Please refresh the page.</div>';
       return;
     }
 

@@ -110,11 +110,65 @@ const Router = (() => {
   // Setup app screen
   function setupAppScreen() {
     console.log('[ROUTER] App screen setup');
+    
+    // Gate admin-only pages
+    gateAdminPages();
+  }
+
+  // Gate admin-only pages
+  function gateAdminPages() {
+    const isAdmin = window.Codes && window.Codes.isAdmin && window.Codes.isAdmin();
+    
+    // Hide/show codes nav item
+    const codesNavItem = document.querySelector('[data-page="codes"]');
+    if (codesNavItem) {
+      if (!isAdmin) {
+        codesNavItem.style.display = 'none';
+      } else {
+        codesNavItem.style.display = 'block';
+      }
+    }
+    
+    // Hide/show codes page
+    const codesPage = document.querySelector('[data-page="codes"]');
+    if (codesPage && codesPage.classList.contains('page')) {
+      if (!isAdmin) {
+        codesPage.style.display = 'none';
+      } else {
+        codesPage.style.display = 'block';
+      }
+    }
+    
+    console.log('[ROUTER] Admin gate applied:', { isAdmin });
   }
 
   // Attach global button handlers
   function attachButtonHandlers() {
+    // Handle nav items (sidebar tabs)
     document.addEventListener('click', (e) => {
+      const navItem = e.target.closest('.nav-item[data-page]');
+      if (navItem) {
+        const page = navItem.getAttribute('data-page');
+        console.log('[ROUTER] Nav item clicked:', page);
+        
+        // Check if page is admin-only
+        if (page === 'codes' && window.Codes && !window.Codes.isAdmin()) {
+          console.warn('[ROUTER] Non-admin attempted to access codes page');
+          return;
+        }
+        
+        // Hide all pages, show selected
+        document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+        const targetPage = document.querySelector(`[data-page="${page}"].page`);
+        if (targetPage) {
+          targetPage.style.display = 'block';
+        }
+        
+        // Update nav item styling
+        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+        navItem.classList.add('active');
+      }
+
       const btn = e.target.closest('[data-action]');
       if (!btn) return;
 
@@ -135,9 +189,12 @@ const Router = (() => {
           if (loginTab) loginTab.click();
           break;
         case 'logout':
-          if (window.EmailAuth) {
-            window.EmailAuth.logout();
+          if (window.ClientAuth) {
+            window.ClientAuth.logout();
           }
+          goToScreen('s-land');
+          break;
+        case 'nav-back':
           goToScreen('s-land');
           break;
         case 'signup-tab':

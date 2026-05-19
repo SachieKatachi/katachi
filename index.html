@@ -455,6 +455,28 @@ const AppUI = (() => {
   }
 
   function setupLanguageToggle() {
+    // Language selection on language screen
+    document.querySelectorAll('.lang-opt').forEach(opt => {
+      opt.addEventListener('click', () => {
+        const lang = opt.getAttribute('data-lang');
+        if (lang) {
+          window.i18n.setLanguage(lang);
+          // Go to app screen
+          pushToStack('s-app');
+          goToScreen('s-app');
+        }
+      });
+    });
+
+    // Continue button on language screen
+    document.querySelectorAll('[data-action="lang-select"]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        pushToStack('s-app');
+        goToScreen('s-app');
+      });
+    });
+
+    // Language toggle in app header
     document.querySelectorAll('.lbtn').forEach(btn => {
       btn.addEventListener('click', () => {
         const lang = btn.getAttribute('data-lang');

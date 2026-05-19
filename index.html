@@ -1,237 +1,804 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-<link rel="stylesheet" href="./styles/app.css">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Katachi - Kitchen Operations</title>
+  <title>Katachi 形</title>
   
-  <!-- CSS IMPORTS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=DM+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
+  
+  <!-- Core Styles -->
   <link rel="stylesheet" href="./styles/variables.css">
   <link rel="stylesheet" href="./styles/auth.css">
+  <link rel="stylesheet" href="./styles/app.css">
+  <link rel="stylesheet" href="./styles/recipes.css">
+  
+  <!-- bcryptjs for password hashing -->
+  <script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.js"></script>
 </head>
 <body>
-  <!-- ROOT CONTAINER -->
-  <div id="root"></div>
 
-  <!-- LANDING PAGE SCREEN -->
-  <div id="s-land" class="screen active">
-    <div class="landing-container">
-      <div class="landing-content">
-        <div class="logo-circle">
-          <span class="logo-text">形</span>
-        </div>
-        <h1 class="brand-name">katachi</h1>
-        <p class="brand-subtitle">形</p>
-        <p class="brand-description">Recipe management, kitchen prep, and ordering<br>built for the precision of professional craft.</p>
-        
-        <div class="cta-buttons">
-          <button class="btn btn-primary" data-action="nav-auth">Start Free Trial</button>
-          <button class="btn btn-secondary" data-action="nav-signin">Sign In</button>
-        </div>
-        
-        <div class="pricing-info">
-          <span class="tier-badge">Free Forever</span>
-          <span class="tier-badge">Pro $29</span>
-          <span class="tier-badge">Growth $59</span>
-          <span class="tier-badge multi">Multi $149</span>
-        </div>
-        
-        <p class="trial-text">14-day free trial · No credit card required · English & 日本語</p>
+<!-- ================== SCREENS ================== -->
+
+<!-- LANDING SCREEN -->
+<div class="screen active" id="s-land">
+  <div class="land-bg"></div>
+  <div class="land-k">形</div>
+  <div class="land-c">
+    <div class="land-seal">📐</div>
+    <h1 class="land-title" data-i18n="appName">katachi</h1>
+    <div class="land-kj" data-i18n="landingSubtitle">形</div>
+    <p class="land-tag" data-i18n="landingDesc">Recipe management, kitchen prep, and ordering<br>built for the precision of professional craft.</p>
+    
+    <div class="land-btns">
+      <button class="btn-lp p" data-action="nav-auth" data-auth-mode="signup" data-i18n="startFreeTrial">Start Free Trial</button>
+      <button class="btn-lp o" data-action="nav-auth" data-auth-mode="login" data-i18n="signIn">Sign In</button>
+    </div>
+    
+    <div class="land-pills">
+      <div class="lpill" data-i18n="freeForever">Free Forever</div>
+      <div class="lpill g" data-i18n="pro">Pro $29</div>
+      <div class="lpill g" data-i18n="growth">Growth $59</div>
+      <div class="lpill g" data-i18n="multi">Multi $149</div>
+    </div>
+    
+    <div class="land-note" data-i18n="trialText">14-day free trial · No credit card required · English & 日本語</div>
+  </div>
+</div>
+
+<!-- AUTH SCREEN -->
+<div class="screen" id="s-auth">
+  <div class="auth-box">
+    <div class="auth-header">
+      <button class="auth-back" data-action="nav-back" title="Back to landing page">←</button>
+      <div class="auth-logo">
+        <div class="auth-wm" data-i18n="appName">katachi</div>
+        <div class="auth-kj" data-i18n="landingSubtitle">形</div>
+      </div>
+      <div class="auth-spacer"></div>
+    </div>
+    
+    <!-- AUTH TABS -->
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-tab="signup" data-i18n="signUp">Sign Up</button>
+      <button class="auth-tab" data-tab="login" data-i18n="signIn">Sign In</button>
+    </div>
+    
+    <!-- SIGNUP FORM -->
+    <form id="auth-form-signup" class="auth-form active">
+      <div class="auth-message" id="signup-message"></div>
+      
+      <div class="fg">
+        <label class="fl" data-i18n="fullName">Full Name</label>
+        <input type="text" class="fi" id="auth-name" placeholder="Chef Alice">
+      </div>
+      
+      <div class="fg">
+        <label class="fl" data-i18n="email">Email</label>
+        <input type="email" class="fi" id="auth-email" placeholder="chef@restaurant.com">
+      </div>
+      
+      <div class="fg">
+        <label class="fl" data-i18n="password">Password</label>
+        <input type="password" class="fi" id="auth-password" placeholder="••••••••">
+      </div>
+      
+      <div class="fg">
+        <label class="fl" data-i18n="confirmPassword">Confirm Password</label>
+        <input type="password" class="fi" id="auth-confirm" placeholder="••••••••">
+      </div>
+      
+      <button type="submit" class="btn-auth" data-i18n="signUp">Sign Up</button>
+      
+      <div class="auth-switch">
+        <span data-i18n="haveAccount">Already have an account?</span>
+        <button type="button" class="auth-tab-switch" data-tab="login" data-i18n="signIn">Sign In</button>
+      </div>
+    </form>
+    
+    <!-- LOGIN FORM -->
+    <form id="auth-form-login" class="auth-form">
+      <div class="auth-message" id="login-message"></div>
+      
+      <div class="fg">
+        <label class="fl" data-i18n="email">Email</label>
+        <input type="email" class="fi" id="auth-email-login" placeholder="chef@restaurant.com">
+      </div>
+      
+      <div class="fg">
+        <label class="fl" data-i18n="password">Password</label>
+        <input type="password" class="fi" id="auth-password-login" placeholder="••••••••">
+      </div>
+      
+      <button type="submit" class="btn-auth" data-i18n="signIn">Sign In</button>
+      
+      <div class="auth-switch">
+        <span data-i18n="forgotPassword">Forgot password?</span>
+        <button type="button" class="auth-tab-switch" data-tab="reset" data-i18n="resetPassword">Reset</button>
+      </div>
+      
+      <div class="auth-switch">
+        <span data-i18n="noAccount">Don't have an account?</span>
+        <button type="button" class="auth-tab-switch" data-tab="signup" data-i18n="signUp">Sign Up</button>
+      </div>
+    </form>
+    
+    <!-- PASSWORD RESET FORM -->
+    <form id="auth-form-reset" class="auth-form">
+      <div class="auth-message" id="reset-message"></div>
+      
+      <div class="fg">
+        <label class="fl" data-i18n="email">Email</label>
+        <input type="email" class="fi" id="reset-email" placeholder="chef@restaurant.com">
+      </div>
+      
+      <div class="fg">
+        <label class="fl" data-i18n="currentPassword">Current Password</label>
+        <input type="password" class="fi" id="reset-current" placeholder="••••••••">
+      </div>
+      
+      <div class="fg">
+        <label class="fl" data-i18n="newPassword">New Password</label>
+        <input type="password" class="fi" id="reset-new" placeholder="••••••••">
+      </div>
+      
+      <div class="fg">
+        <label class="fl" data-i18n="confirmPassword">Confirm New Password</label>
+        <input type="password" class="fi" id="reset-confirm" placeholder="••••••••">
+      </div>
+      
+      <button type="submit" class="btn-auth" data-i18n="resetPassword">Reset Password</button>
+      
+      <div class="auth-switch">
+        <button type="button" class="auth-tab-switch" data-tab="login" data-i18n="backToLogin">Back to Login</button>
+      </div>
+    </form>
+    
+    <div class="trial-note" data-i18n="freeForever">Free Forever — No credit card required</div>
+  </div>
+</div>
+
+<!-- LANGUAGE SCREEN -->
+<div class="screen" id="s-lang">
+  <div class="lang-box">
+    <button class="auth-back" data-action="nav-back">←</button>
+    <div class="lang-title-en" data-i18n="selectLanguage">Select Language</div>
+    <div class="lang-title-ja" data-i18n="selectLanguage">言語を選択</div>
+    
+    <div class="lang-opts">
+      <div class="lang-opt" data-lang="en">
+        <div class="lang-flag">🇺🇸</div>
+        <div class="lang-name">English</div>
+        <div class="lang-native">English</div>
+      </div>
+      <div class="lang-opt" data-lang="ja">
+        <div class="lang-flag">🇯🇵</div>
+        <div class="lang-name">日本語</div>
+        <div class="lang-native">Japanese</div>
       </div>
     </div>
+    
+    <button class="btn-lang" data-action="lang-select" data-i18n="startFreeTrial">Continue</button>
   </div>
+</div>
 
-  <!-- AUTH PAGE SCREEN -->
-  <div id="s-auth" class="screen" style="display: none;">
-    <div class="auth-container">
-      <div class="auth-box">
-        <div class="auth-header">
-          <h2>Sign Up / Sign In</h2>
-          <button class="back-btn" data-action="nav-land" type="button">← Back</button>
-        </div>
-        
-        <form id="authForm" class="auth-form">
-          <!-- NAME FIELD (Signup only) -->
-          <div id="nameField" class="form-group" style="display: none;">
-            <label for="authName">Full Name</label>
-            <input type="text" id="authName" placeholder="Chef Alice">
-            <div id="nameError" class="error-message"></div>
-          </div>
-          
-          <!-- EMAIL FIELD -->
-          <div class="form-group">
-            <label for="authEmail">Email</label>
-            <input type="email" id="authEmail" placeholder="chef@restaurant.com" required>
-            <div id="emailError" class="error-message"></div>
-          </div>
-          
-          <!-- PASSWORD FIELD -->
-          <div class="form-group">
-            <label for="authPassword">Password</label>
-            <input type="password" id="authPassword" placeholder="••••••••" required>
-            <div id="passwordError" class="error-message"></div>
-          </div>
-          
-          <!-- PASSWORD CONFIRM (Signup only) -->
-          <div id="passwordConfirmField" class="form-group" style="display: none;">
-            <label for="authPasswordConfirm">Confirm Password</label>
-            <input type="password" id="authPasswordConfirm" placeholder="••••••••">
-            <div id="passwordConfirmError" class="error-message"></div>
-          </div>
-          
-          <!-- SUBMIT BUTTON -->
-          <button type="submit" class="btn btn-primary btn-full" id="authSubmitBtn">Sign Up</button>
-        </form>
-        
-        <!-- TAB TOGGLE -->
-        <div class="auth-tabs">
-          <button type="button" class="auth-tab active" data-tab="signup" data-action="signup-tab">Sign Up</button>
-          <button type="button" class="auth-tab" data-tab="login" data-action="login-tab">Sign In</button>
-        </div>
+<!-- APP SCREEN -->
+<div class="screen" id="s-app">
+  <!-- HEADER -->
+  <div class="app-hdr">
+    <div class="hdr-wm" data-i18n="appName">katachi</div>
+    <div class="hdr-kj" data-i18n="landingSubtitle">形</div>
+    <div class="hdr-sp"></div>
+    <div class="hdr-acts">
+      <button class="dk-tog" id="theme-toggle"></button>
+      <div class="lang-tog">
+        <button class="lbtn active" data-lang="en">EN</button>
+        <button class="lbtn" data-lang="ja">JA</button>
       </div>
+      <button class="hdr-av" id="user-menu">👤</button>
+      <button class="btn-logout" data-action="logout" data-i18n="logout">Logout</button>
     </div>
   </div>
-
-  <!-- LANGUAGE SELECT SCREEN -->
-  <div id="s-lang" class="screen" style="display: none;">
-    <div class="lang-container">
-      <div class="lang-box">
-        <h2>Select Language</h2>
-        <button class="btn btn-large" data-action="lang-select" data-lang="en">English</button>
-        <button class="btn btn-large" data-action="lang-select" data-lang="ja">日本語</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- APP SCREEN -->
-  <div id="s-app" class="screen" style="display: none;">
-    <div class="app-layout">
-      <header class="app-header">
-        <h1>Katachi</h1>
-        <button type="button" class="btn btn-small" data-action="logout">Logout</button>
-      </header>
-      <main class="app-content">
-        <p>Welcome to Katachi App</p>
-      </main>
-    </div>
-  </div>
-
-  <!-- MODALS CONTAINER -->
-  <div id="modalsContainer"></div>
-
-  <!-- MODULAR JAVASCRIPT IMPORTS (CORRECT ORDER) -->
-  <script src="./js/config.js"></script>
-  <script src="./js/utilities.js"></script>
-  <script src="./js/emailAuth.js"></script>
-  <script src="./js/state.js"></script>
-  <script src="./js/router.js"></script>
-  <script src="./js/app.js"></script>
   
-  <!-- Form submission handler -->
-  <script>
-    window.handleAuthSubmit = async function(e) {
-      e.preventDefault();
-      
-      if (window.Logger) {
-        window.Logger.info('Form submitted');
-      }
-      
-      const isSignup = document.getElementById('authSubmitBtn').textContent === 'Sign Up';
-      
-      if (isSignup) {
-        // SIGNUP FLOW
-        const name = document.getElementById('authName').value.trim();
-        const email = document.getElementById('authEmail').value.trim();
-        const password = document.getElementById('authPassword').value;
-        const passwordConfirm = document.getElementById('authPasswordConfirm').value;
-        
-        if (!name || !email || !password || !passwordConfirm) {
-          alert('Please fill in all fields');
-          return;
-        }
-        
-        if (password !== passwordConfirm) {
-          alert('Passwords do not match');
-          return;
-        }
-        
-        if (window.Logger) {
-          window.Logger.info('Signup attempt', { email, name });
-        }
-        
-        // Call signup
-        if (window.EmailAuth && typeof window.EmailAuth.signup === 'function') {
-          const result = await window.EmailAuth.signup({ name, email, password });
-          
-          if (window.Logger) {
-            window.Logger.info('Signup result', { success: result.success, error: result.error });
-          }
-          
-          if (result.success) {
-            if (window.AuthState && typeof window.AuthState.setUser === 'function') {
-              window.AuthState.setUser(result.user);
-            }
-            if (window.Router && typeof window.Router.goToScreen === 'function') {
-              window.Router.goToScreen('s-lang');
-            }
-          } else {
-            alert('Signup failed: ' + (result.error || 'Unknown error'));
-          }
-        } else {
-          alert('EmailAuth module not loaded');
-        }
-      } else {
-        // LOGIN FLOW
-        const email = document.getElementById('authEmail').value.trim();
-        const password = document.getElementById('authPassword').value;
-        
-        if (!email || !password) {
-          alert('Please fill in all fields');
-          return;
-        }
-        
-        if (window.Logger) {
-          window.Logger.info('Login attempt', { email });
-        }
-        
-        // Call login
-        if (window.EmailAuth && typeof window.EmailAuth.login === 'function') {
-          const result = await window.EmailAuth.login(email, password);
-          
-          if (window.Logger) {
-            window.Logger.info('Login result', { success: result.success, error: result.error });
-          }
-          
-          if (result.success) {
-            if (window.AuthState && typeof window.AuthState.setUser === 'function') {
-              window.AuthState.setUser(result.user);
-            }
-            if (window.Router && typeof window.Router.goToScreen === 'function') {
-              window.Router.goToScreen('s-lang');
-            }
-          } else {
-            alert('Login failed: ' + (result.error || 'Unknown error'));
-          }
-        } else {
-          alert('EmailAuth module not loaded');
-        }
-      }
-    };
+  <!-- SIDEBAR -->
+  <div class="app-sb">
+    <div>
+      <div class="sb-lbl" data-i18n="recipes">RECIPES</div>
+      <div class="nav-item active" data-page="recipes" data-i18n="recipes">📖 Recipes</div>
+    </div>
+    
+    <div>
+      <div class="sb-lbl" data-i18n="prepLists">PREP</div>
+      <div class="nav-item" data-page="prep" data-i18n="prepLists">📋 Prep Lists</div>
+    </div>
+    
+    <div>
+      <div class="sb-lbl" data-i18n="inventory">INVENTORY</div>
+      <div class="nav-item" data-page="inventory" data-i18n="inventory">📦 Inventory</div>
+    </div>
+    
+    <div>
+      <div class="sb-lbl" data-i18n="codes">ADMIN</div>
+      <div class="nav-item" data-page="codes" data-i18n="codes">🔐 Access Codes</div>
+      <div class="nav-item" data-page="pricing" data-i18n="pricing">💰 Pricing <span class="nav-ai">PRO</span></div>
+    </div>
+    
+    <div style="margin-top: auto;">
+      <div class="sb-lbl">AI</div>
+      <div class="nav-item" data-page="ai" data-i18n="aiAssistant">🤖 AI Assistant <span class="nav-ai">PRO</span></div>
+    </div>
+  </div>
+  
+  <!-- MAIN CONTENT -->
+  <div class="app-main">
+    
+    <!-- RECIPES PAGE -->
+    <div class="page active" data-page="recipes">
+      <div class="page-header">
+        <h2 data-i18n="recipesTitle">Recipes</h2>
+        <button class="btn-primary" id="new-recipe-btn" data-i18n="newRecipe">+ New Recipe</button>
+      </div>
+      <div id="recipes-list" class="recipes-grid"></div>
+      <div id="recipes-empty" class="empty-state">
+        <div class="empty-icon">📖</div>
+        <div class="empty-title" data-i18n="noRecipes">No recipes yet</div>
+        <div class="empty-desc" data-i18n="noRecipesDesc">Create your first recipe to get started</div>
+      </div>
+    </div>
+    
+    <!-- PREP LISTS PAGE -->
+    <div class="page" data-page="prep">
+      <div class="page-header">
+        <h2 data-i18n="prepListsTitle">Prep Lists</h2>
+        <button class="btn-primary" id="new-prep-btn" data-i18n="buildPrepList">+ Build Prep List</button>
+      </div>
+      <div id="prep-list" class="prep-grid"></div>
+      <div id="prep-empty" class="empty-state">
+        <div class="empty-icon">📋</div>
+        <div class="empty-title" data-i18n="noPrepLists">No prep lists yet</div>
+        <div class="empty-desc" data-i18n="noPrepListsDesc">Select recipes and create a prep sheet</div>
+      </div>
+    </div>
+    
+    <!-- INVENTORY PAGE -->
+    <div class="page" data-page="inventory">
+      <div class="page-header">
+        <h2 data-i18n="inventoryTitle">Inventory</h2>
+        <button class="btn-primary" id="add-item-btn" data-i18n="addItem">+ Add Item</button>
+      </div>
+      <div id="inventory-list" class="inventory-table"></div>
+      <div id="inventory-empty" class="empty-state">
+        <div class="empty-icon">📦</div>
+        <div class="empty-title" data-i18n="inventoryTitle">Inventory</div>
+        <div class="empty-desc" data-i18n="addItem">Add your first item</div>
+      </div>
+    </div>
+    
+    <!-- CODES PAGE -->
+    <div class="page" data-page="codes">
+      <div class="page-header">
+        <h2 data-i18n="codesTitle">Access Codes</h2>
+        <button class="btn-primary" id="generate-code-btn" data-i18n="generateCode">+ Generate Code</button>
+      </div>
+      <div id="codes-list" class="codes-grid"></div>
+    </div>
+    
+    <!-- PRICING PAGE -->
+    <div class="page" data-page="pricing">
+      <div class="page-header">
+        <h2 data-i18n="pricingTitle">Pricing</h2>
+      </div>
+      <div id="pricing-display" class="pricing-grid"></div>
+      <div id="usage-stats" class="usage-card"></div>
+    </div>
+    
+    <!-- AI ASSISTANT PAGE -->
+    <div class="page" data-page="ai">
+      <div class="page-header">
+        <h2 data-i18n="aiAssistantTitle">AI Recipe Assistant</h2>
+      </div>
+      <div class="ai-section">
+        <h3 data-i18n="askQuestion">What can I help you with?</h3>
+        <div class="ai-input-group">
+          <input type="text" id="ai-question" placeholder="What can I substitute for butter?" class="ai-input">
+          <button class="btn-primary" id="ask-btn" data-i18n="askClaude">Ask</button>
+        </div>
+        <div id="ai-response" class="ai-response"></div>
+      </div>
+      <div class="ai-section">
+        <h3 data-i18n="generateRecipe">Generate Recipe</h3>
+        <textarea id="recipe-desc" placeholder="Describe the recipe you want..." class="ai-input"></textarea>
+        <button class="btn-primary" id="generate-btn" data-i18n="generateRecipe">Generate</button>
+        <div id="generated-recipe" class="ai-response"></div>
+      </div>
+    </div>
+  </div>
+</div>
 
-    // Attach form handler when DOM is ready
-    document.addEventListener('DOMContentLoaded', () => {
-      const authForm = document.getElementById('authForm');
-      if (authForm) {
-        authForm.addEventListener('submit', window.handleAuthSubmit);
-        if (window.Logger) {
-          window.Logger.info('Form handler attached');
-        }
-      } else {
-        console.error('authForm not found');
-      }
+<!-- ================== SCRIPTS ================== -->
+
+<!-- Core Systems -->
+<script src="./js/config.js"></script>
+<script src="./js/utilities.js"></script>
+
+<!-- Client-Side Auth (NEW) -->
+<script src="./js/clientAuth.js"></script>
+
+<!-- Feature Modules -->
+<script src="./js/i18n.js"></script>
+<script src="./js/recipes.js"></script>
+<script src="./js/prepLists.js"></script>
+<script src="./js/inventory.js"></script>
+<script src="./js/codes.js"></script>
+<script src="./js/pricing.js"></script>
+<script src="./js/aiFeatures.js"></script>
+
+<!-- Existing Systems -->
+<script src="./js/state.js"></script>
+<script src="./js/router.js"></script>
+<script src="./js/app.js"></script>
+
+<!-- App UI Manager with Authentication -->
+<script>
+/**
+ * APP UI MANAGER - WITH SECURE AUTHENTICATION
+ * Handles screens, auth with bcryptjs, page navigation
+ */
+
+const AppUI = (() => {
+  let currentPage = 'recipes';
+  let navigationStack = ['s-land'];
+
+  function init() {
+    setupEventListeners();
+    setupAuthNavigation();
+    setupPageNavigation();
+    setupLanguageToggle();
+    setupThemeToggle();
+    renderAllPages();
+  }
+
+  function setupEventListeners() {
+    // Navigation actions
+    document.querySelectorAll('[data-action="nav-auth"]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const mode = btn.getAttribute('data-auth-mode') || 'signup';
+        goToAuthMode(mode);
+        pushToStack('s-auth');
+      });
     });
-  </script>
+
+    document.querySelectorAll('[data-action="nav-back"]').forEach(btn => {
+      btn.addEventListener('click', goBack);
+    });
+
+    document.querySelectorAll('[data-action="logout"]').forEach(btn => {
+      btn.addEventListener('click', logout);
+    });
+
+    // Page navigation
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        const page = item.getAttribute('data-page');
+        if (page) goToPage(page);
+      });
+    });
+
+    // Feature actions
+    document.getElementById('new-recipe-btn')?.addEventListener('click', openRecipeForm);
+    document.getElementById('new-prep-btn')?.addEventListener('click', openPrepBuilder);
+    document.getElementById('add-item-btn')?.addEventListener('click', openInventoryForm);
+    document.getElementById('generate-code-btn')?.addEventListener('click', generateNewCode);
+    document.getElementById('ask-btn')?.addEventListener('click', askAI);
+    document.getElementById('generate-btn')?.addEventListener('click', generateRecipe);
+  }
+
+  function setupAuthNavigation() {
+    // Auth tab switching
+    document.querySelectorAll('[data-tab]').forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        const tabName = tab.getAttribute('data-tab');
+        switchAuthForm(tabName);
+      });
+    });
+
+    // Auth tab switch buttons
+    document.querySelectorAll('.auth-tab-switch').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const tabName = btn.getAttribute('data-tab');
+        switchAuthForm(tabName);
+      });
+    });
+
+    // Auth form submission
+    document.getElementById('auth-form-signup')?.addEventListener('submit', handleSignup);
+    document.getElementById('auth-form-login')?.addEventListener('submit', handleLogin);
+    document.getElementById('auth-form-reset')?.addEventListener('submit', handlePasswordReset);
+  }
+
+  function setupLanguageToggle() {
+    document.querySelectorAll('.lbtn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const lang = btn.getAttribute('data-lang');
+        window.i18n.setLanguage(lang);
+        document.querySelectorAll('.lbtn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+  }
+
+  function setupThemeToggle() {
+    document.getElementById('theme-toggle')?.addEventListener('click', () => {
+      const theme = document.documentElement.getAttribute('data-theme');
+      const newTheme = theme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('k_theme', newTheme);
+    });
+  }
+
+  function pushToStack(screen) {
+    navigationStack.push(screen);
+  }
+
+  function goBack() {
+    if (navigationStack.length > 1) {
+      navigationStack.pop();
+      const previousScreen = navigationStack[navigationStack.length - 1];
+      goToScreen(previousScreen);
+    } else {
+      goToScreen('s-land');
+      navigationStack = ['s-land'];
+    }
+  }
+
+  function goToScreen(screen) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(screen)?.classList.add('active');
+  }
+
+  function goToAuthMode(mode) {
+    switchAuthForm(mode);
+  }
+
+  function switchAuthForm(mode) {
+    // Clear messages
+    document.getElementById('signup-message').innerHTML = '';
+    document.getElementById('login-message').innerHTML = '';
+    document.getElementById('reset-message').innerHTML = '';
+
+    // Switch auth tabs
+    document.querySelectorAll('.auth-tab').forEach(tab => {
+      tab.classList.toggle('active', tab.getAttribute('data-tab') === mode);
+    });
+
+    // Switch auth forms
+    document.querySelectorAll('.auth-form').forEach(form => {
+      const formMode = form.id.replace('auth-form-', '');
+      form.classList.toggle('active', formMode === mode);
+    });
+  }
+
+  function goToPage(page) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelector(`[data-page="${page}"]`)?.classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+    document.querySelector(`.nav-item[data-page="${page}"]`)?.classList.add('active');
+    currentPage = page;
+  }
+
+  async function handleSignup(e) {
+    e.preventDefault();
+    const email = document.getElementById('auth-email').value;
+    const password = document.getElementById('auth-password').value;
+    const confirm = document.getElementById('auth-confirm').value;
+    const name = document.getElementById('auth-name').value;
+    const messageEl = document.getElementById('signup-message');
+
+    // Validate passwords match
+    if (password !== confirm) {
+      messageEl.innerHTML = '<div class="error">Passwords do not match</div>';
+      return;
+    }
+
+    // Call ClientAuth
+    const result = await window.ClientAuth.signup(email, password, name);
+
+    if (result.success) {
+      messageEl.innerHTML = '<div class="success">Account created! Proceeding to language selection...</div>';
+      setTimeout(() => {
+        pushToStack('s-lang');
+        goToScreen('s-lang');
+      }, 1000);
+    } else {
+      messageEl.innerHTML = `<div class="error">${result.error}</div>`;
+    }
+  }
+
+  async function handleLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('auth-email-login').value;
+    const password = document.getElementById('auth-password-login').value;
+    const messageEl = document.getElementById('login-message');
+
+    const result = await window.ClientAuth.login(email, password);
+
+    if (result.success) {
+      messageEl.innerHTML = '<div class="success">Login successful! Proceeding...</div>';
+      setTimeout(() => {
+        pushToStack('s-lang');
+        goToScreen('s-lang');
+      }, 1000);
+    } else {
+      messageEl.innerHTML = `<div class="error">${result.error}</div>`;
+    }
+  }
+
+  async function handlePasswordReset(e) {
+    e.preventDefault();
+    const email = document.getElementById('reset-email').value;
+    const current = document.getElementById('reset-current').value;
+    const newPass = document.getElementById('reset-new').value;
+    const confirm = document.getElementById('reset-confirm').value;
+    const messageEl = document.getElementById('reset-message');
+
+    // Validate
+    if (newPass !== confirm) {
+      messageEl.innerHTML = '<div class="error">New passwords do not match</div>';
+      return;
+    }
+
+    const result = await window.ClientAuth.resetPassword(email, current, newPass);
+
+    if (result.success) {
+      messageEl.innerHTML = '<div class="success">Password reset successful! Redirecting to login...</div>';
+      // Clear form
+      document.getElementById('auth-form-reset').reset();
+      setTimeout(() => {
+        switchAuthForm('login');
+      }, 1500);
+    } else {
+      messageEl.innerHTML = `<div class="error">${result.error}</div>`;
+    }
+  }
+
+  function logout() {
+    window.ClientAuth.logout();
+    navigationStack = ['s-land'];
+    document.getElementById('auth-form-signup').reset();
+    document.getElementById('auth-form-login').reset();
+    document.getElementById('auth-form-reset').reset();
+    goToScreen('s-land');
+  }
+
+  function renderAllPages() {
+    renderRecipes();
+    renderPrepLists();
+    renderInventory();
+    renderCodes();
+    renderPricing();
+  }
+
+  function renderRecipes() {
+    const list = document.getElementById('recipes-list');
+    const empty = document.getElementById('recipes-empty');
+    const recipes = window.Recipes?.getAll?.() || [];
+
+    if (recipes.length === 0) {
+      list.style.display = 'none';
+      empty.style.display = 'block';
+      return;
+    }
+
+    list.style.display = 'grid';
+    empty.style.display = 'none';
+    list.innerHTML = recipes.map(r => `
+      <div class="recipe-card">
+        <h3>${r.name}</h3>
+        <p>${r.category} · ${r.yield} servings</p>
+        <p>${r.ingredients.length} ingredients · ${r.steps.length} steps</p>
+        <div class="card-actions">
+          <button onclick="AppUI.editRecipe('${r.id}')" class="btn-sm">Edit</button>
+          <button onclick="AppUI.deleteRecipe('${r.id}')" class="btn-sm danger">Delete</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderPrepLists() {
+    const list = document.getElementById('prep-list');
+    const empty = document.getElementById('prep-empty');
+    const preps = window.PrepLists?.getAll?.() || [];
+
+    if (preps.length === 0) {
+      list.style.display = 'none';
+      empty.style.display = 'block';
+      return;
+    }
+
+    list.style.display = 'grid';
+    empty.style.display = 'none';
+    list.innerHTML = preps.map(p => `
+      <div class="prep-card">
+        <h3>${p.name}</h3>
+        <p>${p.date} · ${p.shift}</p>
+        <p>${p.recipeIds.length} recipes</p>
+      </div>
+    `).join('');
+  }
+
+  function renderInventory() {
+    const list = document.getElementById('inventory-list');
+    const empty = document.getElementById('inventory-empty');
+    const items = window.Inventory?.getAll?.() || [];
+
+    if (items.length === 0) {
+      list.style.display = 'none';
+      empty.style.display = 'block';
+      return;
+    }
+
+    list.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Qty</th>
+            <th>Unit</th>
+            <th>Supplier</th>
+            <th>Cost</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${items.map(i => `
+            <tr class="${i.quantity === 0 ? 'low-stock' : ''}">
+              <td>${i.name}</td>
+              <td>${i.quantity}</td>
+              <td>${i.unit}</td>
+              <td>${i.supplier}</td>
+              <td>$${i.cost.toFixed(2)}</td>
+              <td>${i.quantity === 0 ? 'Out of Stock' : i.quantity <= i.minQuantity ? 'Low' : 'OK'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  function renderCodes() {
+    const list = document.getElementById('codes-list');
+    const codes = window.Codes?.getAll?.() || [];
+    
+    list.innerHTML = codes.map(c => `
+      <div class="code-card">
+        <div class="code-value">${c.code}</div>
+        <div class="code-tier">${c.tier}</div>
+        <div class="code-status ${c.status}">${c.status}</div>
+      </div>
+    `).join('');
+  }
+
+  function renderPricing() {
+    const display = document.getElementById('pricing-display');
+    const stats = document.getElementById('usage-stats');
+    const tiers = window.Pricing?.getAllTiers?.() || {};
+
+    display.innerHTML = Object.entries(tiers).map(([key, tier]) => `
+      <div class="pricing-card">
+        <h3>${tier.name}</h3>
+        <div class="price">$${tier.price}<span>/mo</span></div>
+        <ul>
+          <li>AI Credits: ${tier.aiCredits}</li>
+          <li>Recipes: ${tier.recipes === -1 ? 'Unlimited' : tier.recipes}</li>
+          <li>Users: ${tier.users === -1 ? 'Unlimited' : tier.users}</li>
+        </ul>
+      </div>
+    `).join('');
+
+    const usage = window.Pricing?.getUsageStats?.();
+    if (usage) {
+      stats.innerHTML = `
+        <h3>${usage.tierName}</h3>
+        <p>AI Credits: ${usage.aiCreditsRemaining} / ${usage.aiCreditsTotal}</p>
+        <p>Recipes: ${usage.recipesUsed} / ${usage.recipesLimit}</p>
+      `;
+    }
+  }
+
+  function openRecipeForm() {
+    const name = prompt('Recipe name:');
+    if (!name) return;
+    window.Recipes?.create?.({ name });
+    renderRecipes();
+  }
+
+  function editRecipe(id) {
+    const recipe = window.Recipes?.getById?.(id);
+    if (!recipe) return;
+    const name = prompt('Recipe name:', recipe.name);
+    if (!name) return;
+    window.Recipes?.update?.(id, { name });
+    renderRecipes();
+  }
+
+  function deleteRecipe(id) {
+    if (!confirm('Delete recipe?')) return;
+    window.Recipes?.delete?.(id);
+    renderRecipes();
+  }
+
+  function openPrepBuilder() {
+    const name = prompt('Prep list name:');
+    if (!name) return;
+    const recipes = window.Recipes?.getAll?.() || [];
+    if (recipes.length === 0) {
+      alert('Create recipes first');
+      return;
+    }
+    const recipeIds = recipes.map(r => r.id);
+    const result = window.PrepLists?.buildFromRecipes?.(recipeIds, { name });
+    if (result?.success) {
+      renderPrepLists();
+    }
+  }
+
+  function openInventoryForm() {
+    const name = prompt('Item name:');
+    if (!name) return;
+    const qty = parseFloat(prompt('Quantity:', '0'));
+    const unit = prompt('Unit:', 'kg');
+    window.Inventory?.addItem?.({ name, quantity: qty, unit });
+    renderInventory();
+  }
+
+  function generateNewCode() {
+    const tier = prompt('Tier (free/pro/growth/multi):', 'pro');
+    const result = window.Codes?.create?.({ tier });
+    if (result) renderCodes();
+  }
+
+  function askAI() {
+    const question = document.getElementById('ai-question').value;
+    const response = document.getElementById('ai-response');
+    
+    response.textContent = 'Loading...';
+    if (!window.AIFeatures?.hasBackendUrl?.()) {
+      response.innerHTML = '<div class="error">Backend not configured.</div>';
+      return;
+    }
+    response.innerHTML = '<div class="info">AI endpoint requires backend configuration.</div>';
+  }
+
+  function generateRecipe() {
+    const desc = document.getElementById('recipe-desc').value;
+    if (!desc) return;
+    if (!window.AIFeatures?.hasBackendUrl?.()) {
+      document.getElementById('generated-recipe').innerHTML = '<div class="error">Backend not configured</div>';
+      return;
+    }
+    document.getElementById('generated-recipe').innerHTML = '<div class="info">AI endpoint requires backend configuration.</div>';
+  }
+
+  return {
+    init,
+    goToPage,
+    editRecipe,
+    deleteRecipe,
+    renderRecipes,
+    renderPrepLists,
+    renderInventory,
+    renderCodes,
+    renderPricing
+  };
+})();
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', () => {
+  AppUI.init();
+});
+</script>
 
 </body>
 </html>

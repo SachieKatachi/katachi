@@ -26,7 +26,6 @@
   <div class="land-bg"></div>
   <div class="land-k">形</div>
   <div class="land-c">
-    <div class="land-seal">📐</div>
     <h1 class="land-title" data-i18n="appName">katachi</h1>
     <div class="land-kj" data-i18n="landingSubtitle">形</div>
     <p class="land-tag" data-i18n="landingDesc">Recipe management, kitchen prep, and ordering<br>built for the precision of professional craft.</p>
@@ -515,8 +514,14 @@ const AppUI = (() => {
     }
 
     // Wait for bcryptjs to be available
+    let attempts = 0;
+    while (!window.bcrypt && attempts < 50) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      attempts++;
+    }
+
     if (!window.bcrypt) {
-      messageEl.innerHTML = '<div class="error">Encryption not ready. Please refresh the page.</div>';
+      messageEl.innerHTML = '<div class="error">Encryption library failed to load. Please refresh the page.</div>';
       return;
     }
 
@@ -540,8 +545,15 @@ const AppUI = (() => {
     const password = document.getElementById('auth-password-login').value;
     const messageEl = document.getElementById('login-message');
 
+    // Wait for bcryptjs to be available
+    let attempts = 0;
+    while (!window.bcrypt && attempts < 50) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      attempts++;
+    }
+
     if (!window.bcrypt) {
-      messageEl.innerHTML = '<div class="error">Encryption not ready. Please refresh the page.</div>';
+      messageEl.innerHTML = '<div class="error">Encryption library failed to load. Please refresh the page.</div>';
       return;
     }
 
@@ -572,8 +584,15 @@ const AppUI = (() => {
       return;
     }
 
+    // Wait for bcryptjs to be available
+    let attempts = 0;
+    while (!window.bcrypt && attempts < 50) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      attempts++;
+    }
+
     if (!window.bcrypt) {
-      messageEl.innerHTML = '<div class="error">Encryption not ready. Please refresh the page.</div>';
+      messageEl.innerHTML = '<div class="error">Encryption library failed to load. Please refresh the page.</div>';
       return;
     }
 

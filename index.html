@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="./styles/variables.css">
   <link rel="stylesheet" href="./styles/auth.css">
   <link rel="stylesheet" href="./styles/app.css">
-  <link rel="stylesheet" href="./styles/recipes.css">
+  <link rel="stylesheet" href="./styles/complete.css">
   
   <!-- bcryptjs for password hashing -->
   <script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.js"></script>
@@ -416,6 +416,11 @@ const AppUI = (() => {
     document.getElementById('auth-form-signup')?.addEventListener('submit', handleSignup);
     document.getElementById('auth-form-login')?.addEventListener('submit', handleLogin);
     document.getElementById('auth-form-reset')?.addEventListener('submit', handlePasswordReset);
+  }
+
+  function setupPageNavigation() {
+    // Page navigation is already handled in setupEventListeners
+    // This function exists to prevent undefined errors
   }
 
   function setupLanguageToggle() {

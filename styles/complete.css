@@ -1,8 +1,8 @@
 /**
- * COMPLETE APP STYLING
+ * COMPLETE APP STYLING - FIXED SCREEN VISIBILITY
  * Matches landing page: gold (#DAA520/#C49A00) + red (#BE0000)
  * Dark background (#0F0800) with 形 watermark
- * All pages, screens, components
+ * FIX: Screens properly hidden/shown, no stacking
  */
 
 :root {
@@ -68,6 +68,8 @@ body {
   font-size: 14px;
   line-height: 1.6;
   overflow: hidden;
+  width: 100vw;
+  height: 100vh;
 }
 
 /* ===== WATERMARK BACKGROUND ===== */
@@ -86,19 +88,20 @@ body::before {
   white-space: nowrap;
 }
 
-/* ===== SCREENS ===== */
+/* ===== SCREENS - CRITICAL FIX ===== */
 .screen {
-  display: none;
+  display: none !important;
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   z-index: 10;
+  overflow: auto;
 }
 
 .screen.active {
-  display: flex;
+  display: flex !important;
 }
 
 /* ===== LANDING PAGE ===== */
@@ -583,12 +586,16 @@ body::before {
 
 /* ===== APP SCREEN ===== */
 #s-app {
-  display: flex;
+  display: flex !important;
   flex-direction: column;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   background: var(--current-bg);
   color: var(--current-ink);
+}
+
+#s-app.active {
+  display: flex !important;
 }
 
 /* Header */
@@ -789,12 +796,12 @@ body::before {
 }
 
 .page {
-  display: none;
+  display: none !important;
   padding: 32px;
 }
 
 .page.active {
-  display: block;
+  display: block !important;
 }
 
 .page-header {

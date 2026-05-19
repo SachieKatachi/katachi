@@ -586,7 +586,7 @@ body::before {
 
 /* ===== APP SCREEN ===== */
 #s-app {
-  display: flex !important;
+  display: none !important;
   flex-direction: column;
   width: 100vw;
   height: 100vh;

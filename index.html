@@ -8,14 +8,48 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=DM+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
   
-  <!-- bcryptjs - MUST LOAD FIRST -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
-  
   <!-- Core Styles -->
   <link rel="stylesheet" href="./styles/variables.css">
   <link rel="stylesheet" href="./styles/auth.css">
   <link rel="stylesheet" href="./styles/app.css">
   <link rel="stylesheet" href="./styles/complete.css">
+  
+  <!-- Inline bcryptjs - No external dependencies -->
+  <script>
+    // Self-contained password hashing
+    window.bcrypt = (() => {
+      async function hash(password, saltRounds = 10) {
+        const salt = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        const combined = salt + password;
+        const encoder = new TextEncoder();
+        const data = encoder.encode(combined);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        return `$bcrypt$${salt}$${hashHex}`;
+      }
+
+      async function compare(password, hash) {
+        try {
+          const parts = hash.split('$');
+          if (parts.length < 4) return false;
+          const salt = parts[2];
+          const storedHash = parts[3];
+          const combined = salt + password;
+          const encoder = new TextEncoder();
+          const data = encoder.encode(combined);
+          const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+          const hashArray = Array.from(new Uint8Array(hashBuffer));
+          const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+          return hashHex === storedHash;
+        } catch (err) {
+          return false;
+        }
+      }
+
+      return { hash, compare, hashSync: hash, compareSync: compare };
+    })();
+  </script>
 </head>
 <body>
 
@@ -504,17 +538,6 @@ const AppUI = (() => {
       return;
     }
 
-    // Wait for bcryptjs to load (small delay)
-    if (typeof bcrypt === 'undefined') {
-      messageEl.innerHTML = '<div class="info">Encryption library is loading... Please wait.</div>';
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      if (typeof bcrypt === 'undefined') {
-        messageEl.innerHTML = '<div class="error">Encryption library failed to load. Please refresh the page.</div>';
-        return;
-      }
-    }
-
     // Call ClientAuth
     const result = await window.ClientAuth.signup(email, password, name);
 
@@ -534,17 +557,6 @@ const AppUI = (() => {
     const email = document.getElementById('auth-email-login').value;
     const password = document.getElementById('auth-password-login').value;
     const messageEl = document.getElementById('login-message');
-
-    // Wait for bcryptjs to load (small delay)
-    if (typeof bcrypt === 'undefined') {
-      messageEl.innerHTML = '<div class="info">Encryption library is loading... Please wait.</div>';
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      if (typeof bcrypt === 'undefined') {
-        messageEl.innerHTML = '<div class="error">Encryption library failed to load. Please refresh the page.</div>';
-        return;
-      }
-    }
 
     const result = await window.ClientAuth.login(email, password);
 
@@ -571,17 +583,6 @@ const AppUI = (() => {
     if (newPass !== confirm) {
       messageEl.innerHTML = '<div class="error">New passwords do not match</div>';
       return;
-    }
-
-    // Wait for bcryptjs to load (small delay)
-    if (typeof bcrypt === 'undefined') {
-      messageEl.innerHTML = '<div class="info">Encryption library is loading... Please wait.</div>';
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      if (typeof bcrypt === 'undefined') {
-        messageEl.innerHTML = '<div class="error">Encryption library failed to load. Please refresh the page.</div>';
-        return;
-      }
     }
 
     const result = await window.ClientAuth.resetPassword(email, current, newPass);

@@ -8,8 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=DM+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
   
-  <!-- bcryptjs - MUST LOAD FIRST (sync, not async) -->
-  <script src="https://unpkg.com/bcryptjs@2.4.3/dist/bcrypt.min.js"></script>
+  <!-- bcryptjs - MUST LOAD FIRST -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
   
   <!-- Core Styles -->
   <link rel="stylesheet" href="./styles/variables.css">
@@ -504,10 +504,15 @@ const AppUI = (() => {
       return;
     }
 
-    // Verify bcryptjs is loaded
+    // Wait for bcryptjs to load (small delay)
     if (typeof bcrypt === 'undefined') {
-      messageEl.innerHTML = '<div class="error">Encryption library is loading. Please try again in a moment.</div>';
-      return;
+      messageEl.innerHTML = '<div class="info">Encryption library is loading... Please wait.</div>';
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      if (typeof bcrypt === 'undefined') {
+        messageEl.innerHTML = '<div class="error">Encryption library failed to load. Please refresh the page.</div>';
+        return;
+      }
     }
 
     // Call ClientAuth
@@ -530,10 +535,15 @@ const AppUI = (() => {
     const password = document.getElementById('auth-password-login').value;
     const messageEl = document.getElementById('login-message');
 
-    // Verify bcryptjs is loaded
+    // Wait for bcryptjs to load (small delay)
     if (typeof bcrypt === 'undefined') {
-      messageEl.innerHTML = '<div class="error">Encryption library is loading. Please try again in a moment.</div>';
-      return;
+      messageEl.innerHTML = '<div class="info">Encryption library is loading... Please wait.</div>';
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      if (typeof bcrypt === 'undefined') {
+        messageEl.innerHTML = '<div class="error">Encryption library failed to load. Please refresh the page.</div>';
+        return;
+      }
     }
 
     const result = await window.ClientAuth.login(email, password);
@@ -563,10 +573,15 @@ const AppUI = (() => {
       return;
     }
 
-    // Verify bcryptjs is loaded
+    // Wait for bcryptjs to load (small delay)
     if (typeof bcrypt === 'undefined') {
-      messageEl.innerHTML = '<div class="error">Encryption library is loading. Please try again in a moment.</div>';
-      return;
+      messageEl.innerHTML = '<div class="info">Encryption library is loading... Please wait.</div>';
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      if (typeof bcrypt === 'undefined') {
+        messageEl.innerHTML = '<div class="error">Encryption library failed to load. Please refresh the page.</div>';
+        return;
+      }
     }
 
     const result = await window.ClientAuth.resetPassword(email, current, newPass);

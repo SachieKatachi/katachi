@@ -313,11 +313,17 @@ const Recipes = (() => {
       container.innerHTML = `
         <div class="empty-state">
           <div class="empty-icon">📖</div>
-          <h3>No recipes yet</h3>
-          <p>Create your first recipe or import from a file</p>
-          <button onclick="Recipes.openCreateModal()" class="btn btn-primary">+ Create Recipe</button>
+          <h3 data-en="No recipes yet" data-ja="レシピがありません">No recipes yet</h3>
+          <p data-en="Create your first recipe to start cooking" data-ja="最初のレシピを作成して料理を始めましょう">Create your first recipe to start cooking</p>
+          <button onclick="Recipes.openCreateModal()" class="btn-primary" data-en="+ Create First Recipe" data-ja="+ 最初のレシピを作成">+ Create First Recipe</button>
         </div>
       `;
+      
+      // Apply current language
+      const currentLang = localStorage.getItem('katachi-language') || 'en';
+      container.querySelectorAll('[data-en][data-ja]').forEach(el => {
+        el.textContent = el.getAttribute(`data-${currentLang}`);
+      });
     }
   }
 
@@ -331,9 +337,92 @@ const Recipes = (() => {
   // ═══════════════════════════════════════════
 
   function openCreateModal() {
-    // Open create recipe modal
-    console.log('[Recipes] Open create modal');
-    // Modal HTML structure will be in index.html
+    // Create modal overlay
+    const modal = document.createElement('div');
+    modal.id = 'recipe-modal';
+    modal.innerHTML = `
+      <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center;" onclick="Recipes.closeCreateModal(event)">
+        <div style="background: white; padding: 2rem; border-radius: 8px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;" onclick="event.stopPropagation()">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2 data-en="Create New Recipe" data-ja="新しいレシピを作成">Create New Recipe</h2>
+            <button onclick="Recipes.closeCreateModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+          </div>
+          <form id="create-recipe-form" onsubmit="Recipes.handleCreateRecipe(event)">
+            <div style="margin-bottom: 1rem;">
+              <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;" data-en="Recipe Name" data-ja="レシピ名">Recipe Name</label>
+              <input type="text" name="name" required style="width: 100%; padding: 0.75rem; border: 2px solid #f5ede5; border-radius: 4px; font-size: 1rem;" placeholder="e.g., Carbonara">
+            </div>
+            <div style="margin-bottom: 1rem;">
+              <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;" data-en="Description (optional)" data-ja="説明（任意）">Description (optional)</label>
+              <textarea name="description" rows="3" style="width: 100%; padding: 0.75rem; border: 2px solid #f5ede5; border-radius: 4px; font-size: 1rem;" placeholder="Brief description..."></textarea>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+              <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;" data-en="Yield" data-ja="収量">Yield</label>
+                <input type="number" name="yield" min="1" value="4" required style="width: 100%; padding: 0.75rem; border: 2px solid #f5ede5; border-radius: 4px; font-size: 1rem;">
+              </div>
+              <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;" data-en="Unit" data-ja="単位">Unit</label>
+                <input type="text" name="yieldUnit" value="servings" required style="width: 100%; padding: 0.75rem; border: 2px solid #f5ede5; border-radius: 4px; font-size: 1rem;">
+              </div>
+            </div>
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
+              <button type="button" onclick="Recipes.closeCreateModal()" class="btn-secondary" data-en="Cancel" data-ja="キャンセル">Cancel</button>
+              <button type="submit" class="btn-primary" data-en="Create Recipe" data-ja="レシピを作成">Create Recipe</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Apply current language
+    const currentLang = localStorage.getItem('katachi-language') || 'en';
+    modal.querySelectorAll('[data-en][data-ja]').forEach(el => {
+      el.textContent = el.getAttribute(`data-${currentLang}`);
+    });
+    
+    console.log('[Recipes] Modal opened');
+  }
+  
+  function closeCreateModal(event) {
+    // Only close if clicking overlay, not the modal content
+    if (event && event.target !== event.currentTarget) return;
+    
+    const modal = document.getElementById('recipe-modal');
+    if (modal) {
+      modal.remove();
+    }
+  }
+  
+  function handleCreateRecipe(event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    
+    const newRecipe = create({
+      name: formData.get('name'),
+      description: formData.get('description') || '',
+      yield: parseInt(formData.get('yield')),
+      yieldUnit: formData.get('yieldUnit'),
+      ingredients: [],
+      method: '',
+      prepWay: '',
+      chefNotes: ''
+    });
+    
+    console.log('[Recipes] Created:', newRecipe.name);
+    
+    // Close modal
+    closeCreateModal();
+    
+    // Re-render list
+    renderRecipeList();
+    
+    // Show success message
+    if (typeof AchievementSystem !== 'undefined') {
+      AchievementSystem.unlock('first_recipe');
+    }
   }
 
   function openRecipe(id) {
@@ -397,6 +486,9 @@ const Recipes = (() => {
 
     // UI
     openCreateModal,
+    openCreateModal,
+    closeCreateModal,
+    handleCreateRecipe,
     openRecipe,
     editRecipe,
     deleteRecipe,

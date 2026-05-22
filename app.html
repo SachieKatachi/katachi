@@ -231,7 +231,9 @@
 
     <!-- Main Content Area -->
     <main class="main-content">
-        <div id="recipes-container" class="module-container"></div>
+        <div id="recipes-container" class="module-container">
+            <div id="recipeList"></div>
+        </div>
         <div id="prep-lists-container" class="module-container" style="display: none;"></div>
         <div id="inventory-container" class="module-container" style="display: none;"></div>
         <div id="orders-container" class="module-container" style="display: none;"></div>
@@ -280,8 +282,8 @@
 
         function renderAllModules() {
             // Call render functions for each module if they exist
-            if (typeof RecipesModule !== 'undefined' && RecipesModule.renderRecipesView) {
-                RecipesModule.renderRecipesView();
+            if (typeof Recipes !== 'undefined' && Recipes.renderRecipeList) {
+                Recipes.renderRecipeList();
             }
             if (typeof PrepListsModule !== 'undefined' && PrepListsModule.renderPrepListsView) {
                 PrepListsModule.renderPrepListsView();

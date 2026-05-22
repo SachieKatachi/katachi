@@ -1,386 +1,563 @@
-/**
- * PRICING MODULE - FIXED VERSION
- * Manage tiers, credits, and billing
- * Full EN/JA support, proper bounds checking, safe credit logic
- * 
- * CHANGES FROM ORIGINAL:
- * 1. Fixed useAiCredit() - now checks if COUNT exceeds remaining (not just zero)
- * 2. Fixed getRemainingAiCredits() - now clamps to 0 minimum (no negatives)
- * 3. Added comprehensive input validation
- * 4. Standardized all error responses to {success, reason/error} format
- * 5. Added bounds checking for all numeric operations
- * 6. Added tier validation before use
- * 7. Improved logging and debugging
- */
+// ============================================================================
+// KATACHI - PRICING MODULE
+// Set menu prices, calculate margins, and optimize profitability
+// ============================================================================
 
-const Pricing = (() => {
-  const STORAGE_KEY = 'k_pricing';
+const PricingModule = (() => {
+    const STORAGE_KEY = 'k_pricing';
+    let pricingData = {}; // Map of recipeId -> pricing info
 
-  // Tier definitions - frozen to prevent accidental mutations
-  const tiers = Object.freeze({
-    free: Object.freeze({
-      name: 'Free Forever',
-      price: 0,
-      aiCredits: 5,
-      recipes: 10,
-      users: 1,
-      features: Object.freeze(['recipes', 'prep'])
-    }),
-    pro: Object.freeze({
-      name: 'Pro',
-      price: 29,
-      aiCredits: 100,
-      recipes: -1, // unlimited
-      users: 1,
-      features: Object.freeze(['recipes', 'prep', 'inventory', 'scanning', 'ai'])
-    }),
-    growth: Object.freeze({
-      name: 'Growth',
-      price: 59,
-      aiCredits: 250,
-      recipes: -1,
-      users: 5,
-      features: Object.freeze(['recipes', 'prep', 'inventory', 'scanning', 'ai', 'codes', 'reports'])
-    }),
-    multi: Object.freeze({
-      name: 'Multi',
-      price: 149,
-      aiCredits: 500,
-      recipes: -1,
-      users: -1,
-      features: Object.freeze(['recipes', 'prep', 'inventory', 'scanning', 'ai', 'codes', 'reports', 'analytics'])
-    })
-  });
+    // ============================================================================
+    // INITIALIZATION
+    // ============================================================================
 
-  let userTier = localStorage.getItem('k_user_tier') || 'free';
-  let aiCreditsUsed = parseInt(localStorage.getItem('k_ai_credits_used')) || 0;
-  let subscriptions = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-
-  /**
-   * Input validation helpers
-   */
-  function validateTierName(tierName) {
-    return tierName && tiers[tierName] ? tierName : null;
-  }
-
-  function validatePositiveNumber(value, fieldName) {
-    const num = parseInt(value);
-    if (isNaN(num) || num < 0) {
-      return { valid: false, error: `${fieldName} must be a positive number` };
-    }
-    return { valid: true, value: num };
-  }
-
-  function save() {
-    try {
-      localStorage.setItem('k_user_tier', userTier);
-      localStorage.setItem('k_ai_credits_used', aiCreditsUsed.toString());
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(subscriptions));
-      if (window.Logger) {
-        window.Logger.info('Pricing saved', { tier: userTier, creditsUsed: aiCreditsUsed });
-      }
-    } catch (err) {
-      if (window.Logger) {
-        window.Logger.error('Failed to save pricing', { error: err.message });
-      }
-    }
-  }
-
-  /**
-   * Get tier definition by name
-   * @param {string} tierName - Tier name (free, pro, growth, multi)
-   * @returns {Object|null} Tier definition or null if invalid
-   */
-  function getTier(tierName) {
-    const validTier = validateTierName(tierName);
-    return validTier ? tiers[validTier] : tiers.free;
-  }
-
-  /**
-   * Get all available tiers
-   * @returns {Object} All tier definitions
-   */
-  function getAllTiers() {
-    return tiers;
-  }
-
-  /**
-   * Set user tier
-   * @param {string} tierName - Tier name
-   * @returns {boolean} Success
-   */
-  function setUserTier(tierName) {
-    const validTier = validateTierName(tierName);
-    if (!validTier) {
-      if (window.Logger) {
-        window.Logger.warn('Invalid tier name', { tierName });
-      }
-      return false;
+    function init() {
+        loadPricing();
+        console.log('✅ Pricing module initialized');
     }
 
-    userTier = validTier;
-    aiCreditsUsed = 0; // Reset credits on tier change
-    subscriptions[userTier] = {
-      tier: validTier,
-      subscribedAt: new Date().toISOString(),
-      aiCreditsUsed: 0
+    // ============================================================================
+    // DATA MANAGEMENT
+    // ============================================================================
+
+    function loadPricing() {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        pricingData = stored ? JSON.parse(stored) : {};
+    }
+
+    function savePricing() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(pricingData));
+    }
+
+    // ============================================================================
+    // PRICING STRATEGIES
+    // ============================================================================
+
+    const PRICING_STRATEGIES = {
+        COST_PLUS: 'cost_plus',           // Cost + fixed markup %
+        TARGET_MARGIN: 'target_margin',    // Target profit margin %
+        COMPETITIVE: 'competitive',        // Match competitor pricing
+        VALUE_BASED: 'value_based',       // Based on perceived value
+        PSYCHOLOGICAL: 'psychological'     // $9.99 vs $10.00
     };
 
-    save();
+    const PRICING_TIERS = {
+        ECONOMY: { multiplier: 2.5, name: 'Economy' },      // 2.5x cost
+        STANDARD: { multiplier: 3.0, name: 'Standard' },    // 3x cost
+        PREMIUM: { multiplier: 3.5, name: 'Premium' },      // 3.5x cost
+        LUXURY: { multiplier: 4.0, name: 'Luxury' }         // 4x cost
+    };
 
-    if (window.Logger) {
-      window.Logger.info('User tier changed', { tier: validTier, credits: getTier(validTier).aiCredits });
+    // ============================================================================
+    // PRICE CALCULATION
+    // ============================================================================
+
+    function calculatePrice(recipeId, strategy = 'cost_plus', options = {}) {
+        // Get recipe cost from CostingModule
+        if (typeof CostingModule === 'undefined') {
+            console.warn('CostingModule not loaded');
+            return null;
+        }
+
+        const costData = CostingModule.getRecipeCost(recipeId);
+        if (!costData) {
+            console.warn(`No cost data found for recipe ${recipeId}`);
+            return null;
+        }
+
+        const cost = costData.costPerServing;
+        let calculatedPrice = 0;
+        let calculation = {};
+
+        switch(strategy) {
+            case PRICING_STRATEGIES.COST_PLUS:
+                const markup = options.markup || 200; // Default 200% markup = 3x cost
+                calculatedPrice = cost * (1 + markup / 100);
+                calculation = {
+                    method: 'Cost Plus',
+                    cost: cost,
+                    markup: markup,
+                    markupAmount: calculatedPrice - cost
+                };
+                break;
+
+            case PRICING_STRATEGIES.TARGET_MARGIN:
+                const targetMargin = options.targetMargin || 66.67; // Default 66.67% margin
+                calculatedPrice = cost / (1 - targetMargin / 100);
+                calculation = {
+                    method: 'Target Margin',
+                    cost: cost,
+                    targetMargin: targetMargin,
+                    actualMargin: ((calculatedPrice - cost) / calculatedPrice) * 100
+                };
+                break;
+
+            case PRICING_STRATEGIES.COMPETITIVE:
+                calculatedPrice = options.competitorPrice || cost * 3;
+                calculation = {
+                    method: 'Competitive',
+                    cost: cost,
+                    competitorPrice: options.competitorPrice,
+                    ourMargin: ((calculatedPrice - cost) / calculatedPrice) * 100
+                };
+                break;
+
+            case PRICING_STRATEGIES.VALUE_BASED:
+                const tier = options.tier || 'STANDARD';
+                const multiplier = PRICING_TIERS[tier]?.multiplier || 3.0;
+                calculatedPrice = cost * multiplier;
+                calculation = {
+                    method: 'Value Based',
+                    tier: PRICING_TIERS[tier]?.name,
+                    multiplier: multiplier,
+                    cost: cost
+                };
+                break;
+
+            case PRICING_STRATEGIES.PSYCHOLOGICAL:
+                const basePrice = cost * (options.multiplier || 3);
+                // Round to psychological price points (.99, .95, .49)
+                calculatedPrice = Math.ceil(basePrice) - 0.01;
+                calculation = {
+                    method: 'Psychological',
+                    basePrice: basePrice,
+                    adjustment: 'Rounded to .99'
+                };
+                break;
+
+            default:
+                calculatedPrice = cost * 3; // Default 3x cost
+        }
+
+        // Apply psychological rounding if enabled
+        if (options.psychologicalPricing && strategy !== PRICING_STRATEGIES.PSYCHOLOGICAL) {
+            const rounded = Math.ceil(calculatedPrice) - 0.01;
+            calculation.psychologicalAdjustment = {
+                before: calculatedPrice,
+                after: rounded
+            };
+            calculatedPrice = rounded;
+        }
+
+        const foodCostPercentage = (cost / calculatedPrice) * 100;
+        const margin = calculatedPrice - cost;
+        const marginPercentage = (margin / calculatedPrice) * 100;
+
+        return {
+            recipeId,
+            price: calculatedPrice,
+            cost: cost,
+            margin: margin,
+            marginPercentage: marginPercentage,
+            foodCostPercentage: foodCostPercentage,
+            strategy: strategy,
+            calculation: calculation,
+            calculatedAt: new Date().toISOString()
+        };
     }
 
-    return true;
-  }
+    // ============================================================================
+    // PRICE MANAGEMENT
+    // ============================================================================
 
-  /**
-   * Get current user tier
-   * @returns {string} Tier name
-   */
-  function getUserTier() {
-    return userTier;
-  }
+    function setPrice(recipeId, price, strategy = 'manual', notes = '') {
+        if (typeof CostingModule === 'undefined') {
+            console.warn('CostingModule not loaded');
+            return null;
+        }
 
-  /**
-   * Check if user can use a feature
-   * @param {string} feature - Feature name
-   * @returns {boolean} True if feature available in current tier
-   */
-  function canUseFeature(feature) {
-    if (!feature || typeof feature !== 'string') {
-      return false;
-    }
-    const tier = getTier(userTier);
-    return tier.features.includes(feature.toLowerCase());
-  }
+        const costData = CostingModule.getRecipeCost(recipeId);
+        if (!costData) {
+            console.warn(`No cost data for recipe ${recipeId}`);
+            return null;
+        }
 
-  /**
-   * Get remaining AI credits
-   * CRITICAL FIX: Clamps to 0 minimum to prevent negative display
-   * @returns {number} Remaining credits (minimum 0)
-   */
-  function getRemainingAiCredits() {
-    const tier = getTier(userTier);
-    if (!tier) {
-      return 0;
-    }
-    // CRITICAL FIX: Clamp to 0 minimum - prevents negative display
-    return Math.max(0, tier.aiCredits - aiCreditsUsed);
-  }
+        const cost = costData.costPerServing;
+        const margin = price - cost;
+        const marginPercentage = (margin / price) * 100;
+        const foodCostPercentage = (cost / price) * 100;
 
-  /**
-   * Use AI credits
-   * CRITICAL FIX: Checks if COUNT exceeds remaining (not just if zero)
-   * @param {number} count - Number of credits to use (default 1)
-   * @returns {Object} {success, reason, creditsUsed, remaining}
-   */
-  function useAiCredit(count = 1) {
-    // Validate count
-    const countValidation = validatePositiveNumber(count, 'Credit count');
-    if (!countValidation.valid) {
-      return { success: false, reason: countValidation.error };
-    }
+        const priceData = {
+            recipeId: recipeId,
+            recipeName: costData.recipeName,
+            price: parseFloat(price),
+            cost: cost,
+            margin: margin,
+            marginPercentage: marginPercentage,
+            foodCostPercentage: foodCostPercentage,
+            strategy: strategy,
+            notes: notes,
+            setAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            priceHistory: pricingData[recipeId]?.priceHistory || []
+        };
 
-    const creditCount = countValidation.value;
+        // Add to price history
+        if (pricingData[recipeId]) {
+            priceData.priceHistory.push({
+                price: pricingData[recipeId].price,
+                changedAt: new Date().toISOString()
+            });
+        }
 
-    // Check current tier exists
-    const tier = getTier(userTier);
-    if (!tier) {
-      return { success: false, reason: 'Invalid tier configuration' };
+        pricingData[recipeId] = priceData;
+        savePricing();
+
+        // Achievement check: Perfectionist (99%+ margin)
+        if (marginPercentage >= 99) {
+            checkAchievement('perfectionist');
+        }
+
+        return priceData;
     }
 
-    // Get remaining credits BEFORE attempting to use
-    const remaining = getRemainingAiCredits();
+    function updatePrice(recipeId, newPrice, notes = '') {
+        const existing = pricingData[recipeId];
+        if (!existing) {
+            return setPrice(recipeId, newPrice, 'manual', notes);
+        }
 
-    // CRITICAL FIX: Check if requested COUNT exceeds available
-    // NOT just checking if remaining <= 0
-    if (remaining < creditCount) {
-      if (window.Logger) {
-        window.Logger.warn('Insufficient AI credits', { 
-          requested: creditCount, 
-          available: remaining,
-          tier: userTier 
+        return setPrice(recipeId, newPrice, existing.strategy, notes);
+    }
+
+    function getPrice(recipeId) {
+        return pricingData[recipeId] || null;
+    }
+
+    function deletePrice(recipeId) {
+        if (!pricingData[recipeId]) return false;
+
+        delete pricingData[recipeId];
+        savePricing();
+        return true;
+    }
+
+    // ============================================================================
+    // PRICE OPTIMIZATION
+    // ============================================================================
+
+    function optimizePrice(recipeId, constraints = {}) {
+        const pricing = calculatePrice(recipeId, PRICING_STRATEGIES.TARGET_MARGIN, {
+            targetMargin: constraints.targetMargin || 65
         });
-      }
-      return {
-        success: false,
-        reason: 'Insufficient AI credits',
-        requested: creditCount,
-        available: remaining,
-        needed: creditCount - remaining
-      };
+
+        if (!pricing) return null;
+
+        const recommendations = [];
+
+        // Check food cost percentage (ideal: 28-35%)
+        if (pricing.foodCostPercentage > 35) {
+            recommendations.push({
+                type: 'increase',
+                message: `Food cost is ${pricing.foodCostPercentage.toFixed(1)}%. Consider raising price to $${(pricing.cost / 0.32).toFixed(2)} for 32% food cost.`,
+                suggestedPrice: pricing.cost / 0.32,
+                reason: 'Lower food cost percentage'
+            });
+        } else if (pricing.foodCostPercentage < 28) {
+            recommendations.push({
+                type: 'decrease',
+                message: `Food cost is only ${pricing.foodCostPercentage.toFixed(1)}%. You could lower price or improve quality.`,
+                suggestedPrice: pricing.cost / 0.30,
+                reason: 'Room for price adjustment'
+            });
+        }
+
+        // Psychological pricing check
+        if (pricing.price % 1 !== 0.99 && pricing.price % 1 !== 0.95) {
+            const psychPrice = Math.ceil(pricing.price) - 0.01;
+            recommendations.push({
+                type: 'psychological',
+                message: `Round to $${psychPrice.toFixed(2)} for psychological pricing`,
+                suggestedPrice: psychPrice,
+                reason: 'Psychological pricing (.99 ending)'
+            });
+        }
+
+        // Competitive positioning
+        if (constraints.competitorPrice) {
+            const diff = pricing.price - constraints.competitorPrice;
+            const diffPercent = (diff / constraints.competitorPrice) * 100;
+
+            if (Math.abs(diffPercent) > 15) {
+                recommendations.push({
+                    type: 'competitive',
+                    message: `Your price is ${diffPercent > 0 ? 'higher' : 'lower'} than competitors by ${Math.abs(diffPercent).toFixed(1)}%`,
+                    suggestedPrice: constraints.competitorPrice,
+                    reason: 'Competitive positioning'
+                });
+            }
+        }
+
+        return {
+            current: pricing,
+            recommendations: recommendations,
+            optimizedAt: new Date().toISOString()
+        };
     }
 
-    // Use credits safely
-    aiCreditsUsed += creditCount;
-    save();
+    function bulkOptimizePrices(targetMargin = 65) {
+        if (typeof CostingModule === 'undefined') return [];
 
-    if (window.Logger) {
-      window.Logger.info('AI credits used', { 
-        count: creditCount, 
-        remaining: getRemainingAiCredits(),
-        tier: userTier 
-      });
+        const allCosts = Object.values(CostingModule.exportRecipeCosts());
+        const optimized = [];
+
+        allCosts.forEach(costData => {
+            const pricing = calculatePrice(costData.recipeId, PRICING_STRATEGIES.TARGET_MARGIN, {
+                targetMargin: targetMargin
+            });
+
+            if (pricing) {
+                optimized.push(pricing);
+            }
+        });
+
+        return optimized;
     }
+
+    // ============================================================================
+    // PRICING ANALYTICS
+    // ============================================================================
+
+    function getPricingStats() {
+        const allPrices = Object.values(pricingData);
+        
+        if (allPrices.length === 0) {
+            return {
+                totalPriced: 0,
+                avgMargin: 0,
+                avgFoodCost: 0,
+                highMarginItems: 0,
+                lowMarginItems: 0
+            };
+        }
+
+        const avgMargin = allPrices.reduce((sum, p) => sum + p.marginPercentage, 0) / allPrices.length;
+        const avgFoodCost = allPrices.reduce((sum, p) => sum + p.foodCostPercentage, 0) / allPrices.length;
+        const highMarginItems = allPrices.filter(p => p.marginPercentage >= 65).length;
+        const lowMarginItems = allPrices.filter(p => p.marginPercentage < 50).length;
+
+        return {
+            totalPriced: allPrices.length,
+            avgMargin: avgMargin,
+            avgFoodCost: avgFoodCost,
+            highMarginItems: highMarginItems,
+            lowMarginItems: lowMarginItems,
+            avgPrice: allPrices.reduce((sum, p) => sum + p.price, 0) / allPrices.length
+        };
+    }
+
+    function getHighMarginItems(threshold = 70) {
+        return Object.values(pricingData)
+            .filter(p => p.marginPercentage >= threshold)
+            .sort((a, b) => b.marginPercentage - a.marginPercentage);
+    }
+
+    function getLowMarginItems(threshold = 50) {
+        return Object.values(pricingData)
+            .filter(p => p.marginPercentage < threshold)
+            .sort((a, b) => a.marginPercentage - b.marginPercentage);
+    }
+
+    // ============================================================================
+    // ACHIEVEMENT SYSTEM HOOKS
+    // ============================================================================
+
+    function checkAchievement(type) {
+        if (typeof AchievementSystem === 'undefined') return;
+
+        switch(type) {
+            case 'perfectionist':
+                // Check if user has items with 99%+ margin targets
+                const perfectItems = Object.values(pricingData).filter(p => p.marginPercentage >= 99);
+                if (perfectItems.length >= 1) {
+                    AchievementSystem.unlock('perfectionist');
+                }
+                break;
+        }
+    }
+
+    // ============================================================================
+    // UI RENDERING
+    // ============================================================================
+
+    function renderPricingView() {
+        const container = document.getElementById('pricing-container');
+        if (!container) return;
+
+        const stats = getPricingStats();
+
+        const html = `
+            <div class="pricing-header">
+                <div>
+                    <h2 data-en="Menu Pricing" data-ja="メニュー価格設定">Menu Pricing</h2>
+                    <div class="pricing-stats-row">
+                        <span class="stat">${stats.totalPriced} items priced</span>
+                        <span class="stat stat-margin">${stats.avgMargin.toFixed(1)}% avg margin</span>
+                        <span class="stat stat-food-cost">${stats.avgFoodCost.toFixed(1)}% avg food cost</span>
+                    </div>
+                </div>
+                <button class="btn-primary" id="optimize-all-prices">Optimize All Prices</button>
+            </div>
+
+            <div class="pricing-tabs">
+                <button class="tab-btn active" data-tab="pricing">Price List</button>
+                <button class="tab-btn" data-tab="calculator">Price Calculator</button>
+                <button class="tab-btn" data-tab="insights">Insights</button>
+            </div>
+
+            <div class="tab-content" id="pricing-tab">
+                ${renderPricingTable()}
+            </div>
+
+            <div class="tab-content" id="calculator-tab" style="display: none;">
+                ${renderPriceCalculator()}
+            </div>
+
+            <div class="tab-content" id="insights-tab" style="display: none;">
+                ${renderPricingInsights()}
+            </div>
+        `;
+
+        container.innerHTML = html;
+    }
+
+    function renderPricingTable() {
+        const prices = Object.values(pricingData);
+
+        if (prices.length === 0) {
+            return `
+                <div class="empty-state">
+                    <div class="empty-icon">🏷️</div>
+                    <h3>No Prices Set Yet</h3>
+                    <p>Set menu prices to track margins and profitability</p>
+                </div>
+            `;
+        }
+
+        return `
+            <table class="pricing-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Cost</th>
+                        <th>Price</th>
+                        <th>Margin</th>
+                        <th>Margin %</th>
+                        <th>Food Cost %</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${prices.map(item => {
+                        const marginClass = item.marginPercentage >= 65 ? 'good' : 
+                                          item.marginPercentage >= 50 ? 'okay' : 'low';
+                        
+                        return `
+                            <tr>
+                                <td><strong>${item.recipeName}</strong></td>
+                                <td>$${item.cost.toFixed(2)}</td>
+                                <td><strong>$${item.price.toFixed(2)}</strong></td>
+                                <td>$${item.margin.toFixed(2)}</td>
+                                <td class="margin-${marginClass}">${item.marginPercentage.toFixed(1)}%</td>
+                                <td>${item.foodCostPercentage.toFixed(1)}%</td>
+                                <td>
+                                    ${item.foodCostPercentage > 35 ? '⚠️ High' : 
+                                      item.foodCostPercentage < 28 ? '💡 Low' : '✅ Good'}
+                                </td>
+                                <td>
+                                    <button class="btn-sm btn-secondary optimize-price" data-recipe-id="${item.recipeId}">
+                                        Optimize
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        `;
+    }
+
+    function renderPriceCalculator() {
+        return `
+            <div class="price-calculator">
+                <h3>Price Calculator</h3>
+                <p>Calculate optimal price using different strategies</p>
+                <div class="calculator-form">
+                    <select id="calc-recipe">
+                        <option value="">Select a recipe...</option>
+                    </select>
+                    <select id="calc-strategy">
+                        <option value="cost_plus">Cost Plus (Markup %)</option>
+                        <option value="target_margin">Target Margin %</option>
+                        <option value="value_based">Value Based (Tier)</option>
+                        <option value="psychological">Psychological Pricing</option>
+                    </select>
+                    <button class="btn-primary" id="calculate-price-btn">Calculate</button>
+                </div>
+                <div id="calc-result" class="calc-result"></div>
+            </div>
+        `;
+    }
+
+    function renderPricingInsights() {
+        const highMargin = getHighMarginItems(70);
+        const lowMargin = getLowMarginItems(50);
+
+        return `
+            <div class="insights-grid">
+                <div class="insight-card">
+                    <h3>🌟 Best Performers (70%+ margin)</h3>
+                    <div class="insight-list">
+                        ${highMargin.slice(0, 5).map(item => `
+                            <div class="insight-item">
+                                <span class="insight-name">${item.recipeName}</span>
+                                <span class="insight-value good">${item.marginPercentage.toFixed(1)}%</span>
+                            </div>
+                        `).join('') || '<p>No high-margin items yet</p>'}
+                    </div>
+                </div>
+
+                <div class="insight-card">
+                    <h3>⚠️ Needs Attention (&lt;50% margin)</h3>
+                    <div class="insight-list">
+                        ${lowMargin.slice(0, 5).map(item => `
+                            <div class="insight-item">
+                                <span class="insight-name">${item.recipeName}</span>
+                                <span class="insight-value low">${item.marginPercentage.toFixed(1)}%</span>
+                            </div>
+                        `).join('') || '<p>All items have good margins!</p>'}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // ============================================================================
+    // PUBLIC API
+    // ============================================================================
 
     return {
-      success: true,
-      creditsUsed: creditCount,
-      remaining: getRemainingAiCredits()
+        init,
+        calculatePrice,
+        setPrice,
+        updatePrice,
+        getPrice,
+        deletePrice,
+        optimizePrice,
+        bulkOptimizePrices,
+        getPricingStats,
+        getHighMarginItems,
+        getLowMarginItems,
+        renderPricingView,
+        PRICING_STRATEGIES,
+        PRICING_TIERS
     };
-  }
-
-  /**
-   * Purchase additional AI credits
-   * Note: In production, this would integrate with payment system
-   * @param {number} count - Number of credits to add
-   * @returns {Object} {success, creditsAdded, newTotal}
-   */
-  function purchaseAiCredits(count) {
-    // Validate count
-    const countValidation = validatePositiveNumber(count, 'Credits to purchase');
-    if (!countValidation.valid) {
-      return { success: false, error: countValidation.error };
-    }
-
-    const creditCount = countValidation.value;
-
-    const tier = getTier(userTier);
-    if (!tier) {
-      return { success: false, error: 'Invalid tier configuration' };
-    }
-
-    // In a real system, this would:
-    // 1. Process payment
-    // 2. Verify transaction
-    // 3. Add credits to tier or track separately
-    
-    // For MVP, we track purchased credits separately or increase tier limit
-    // For now, log the intent
-    if (window.Logger) {
-      window.Logger.info('Purchase AI credits requested', { 
-        count: creditCount,
-        tier: userTier,
-        currentUsage: aiCreditsUsed,
-        currentLimit: tier.aiCredits
-      });
-    }
-
-    return {
-      success: true,
-      creditsAdded: creditCount,
-      message: 'Credit purchase logged. Payment integration required.'
-    };
-  }
-
-  /**
-   * Get usage statistics
-   * @returns {Object} Usage stats for current tier
-   */
-  function getUsageStats() {
-    const tier = getTier(userTier);
-    if (!tier) {
-      return null;
-    }
-
-    const recipesUsed = window.Recipes?.getAll?.()?.length || 0;
-    const recipesLimit = tier.recipes === -1 ? 'Unlimited' : tier.recipes;
-
-    return {
-      tier: userTier,
-      tierName: tier.name,
-      tierPrice: tier.price,
-      aiCreditsUsed: Math.max(0, aiCreditsUsed), // Clamp to 0
-      aiCreditsRemaining: getRemainingAiCredits(),
-      aiCreditsTotal: tier.aiCredits,
-      recipesUsed,
-      recipesLimit,
-      usersLimit: tier.users === -1 ? 'Unlimited' : tier.users,
-      features: Array.from(tier.features),
-      creditsPercentUsed: Math.round((aiCreditsUsed / tier.aiCredits) * 100)
-    };
-  }
-
-  /**
-   * Check if tier has unlimited recipes
-   * @returns {boolean} True if recipes are unlimited
-   */
-  function hasUnlimitedRecipes() {
-    const tier = getTier(userTier);
-    return tier && tier.recipes === -1;
-  }
-
-  /**
-   * Check if tier has unlimited users
-   * @returns {boolean} True if users are unlimited
-   */
-  function hasUnlimitedUsers() {
-    const tier = getTier(userTier);
-    return tier && tier.users === -1;
-  }
-
-  /**
-   * Check if user has exceeded recipe limit
-   * @returns {Object} {exceeded, used, limit}
-   */
-  function checkRecipeLimit() {
-    const tier = getTier(userTier);
-    if (!tier) {
-      return { exceeded: true, used: 0, limit: 0 };
-    }
-
-    if (tier.recipes === -1) {
-      return { exceeded: false, used: 0, limit: -1 }; // unlimited
-    }
-
-    const used = window.Recipes?.getAll?.()?.length || 0;
-    return {
-      exceeded: used > tier.recipes,
-      used,
-      limit: tier.recipes,
-      remaining: Math.max(0, tier.recipes - used)
-    };
-  }
-
-  // Initialize from localStorage if available
-  const savedTier = localStorage.getItem('k_user_tier');
-  if (savedTier && validateTierName(savedTier)) {
-    userTier = savedTier;
-  }
-
-  const savedCredits = localStorage.getItem('k_ai_credits_used');
-  if (savedCredits) {
-    const parsed = parseInt(savedCredits);
-    if (!isNaN(parsed) && parsed >= 0) {
-      aiCreditsUsed = parsed;
-    }
-  }
-
-  if (window.Logger) {
-    window.Logger.info('Pricing module loaded (FIXED)', { 
-      tier: userTier, 
-      creditsUsed: aiCreditsUsed,
-      remaining: getRemainingAiCredits()
-    });
-  }
-
-  return {
-    getTier,
-    getAllTiers,
-    setUserTier,
-    getUserTier,
-    canUseFeature,
-    getRemainingAiCredits,
-    useAiCredit,
-    purchaseAiCredits,
-    getUsageStats,
-    hasUnlimitedRecipes,
-    hasUnlimitedUsers,
-    checkRecipeLimit
-  };
 })();
 
-window.Pricing = Pricing;
-console.log('[Pricing] Pricing module loaded (FIXED)');
+// Auto-initialize
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', PricingModule.init);
+} else {
+    PricingModule.init();
+}

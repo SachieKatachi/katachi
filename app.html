@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Katachi - Kitchen OS</title>
+    
+    <!-- Achievement System CSS (MUST LOAD FIRST) -->
+    <link rel="stylesheet" href="css/achievements.css">
+    
+    <!-- Main App CSS -->
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="main-nav">
+        <div class="nav-brand">
+            <img src="assets/katachi-logo-v3-fixed.svg" alt="Katachi" class="nav-logo">
+            <span class="brand-name">katachi</span>
+        </div>
+        <div class="nav-links">
+            <a href="#recipes" class="nav-link">📖 Recipes</a>
+            <a href="#prep-lists" class="nav-link">📋 Prep Lists</a>
+            <a href="#inventory" class="nav-link">📦 Inventory</a>
+            <a href="#orders" class="nav-link">📲 Orders</a>
+            <a href="#vendors" class="nav-link">🏭 Vendors</a>
+            <a href="#costing" class="nav-link">💰 Costing</a>
+            <a href="#pricing" class="nav-link">🏷️ Pricing</a>
+            <a href="#team" class="nav-link">👥 Team</a>
+            <a href="#standards" class="nav-link">✓ Standards</a>
+            <a href="#analytics" class="nav-link">📊 Analytics</a>
+            <a href="#settings" class="nav-link">⚙️ Settings</a>
+        </div>
+        <div class="nav-language">
+            <button class="lang-btn active" data-lang="en">EN</button>
+            <button class="lang-btn" data-lang="ja">日本語</button>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Module containers (only one visible at a time) -->
+        <div id="recipes-container" class="module-container"></div>
+        <div id="prep-lists-container" class="module-container" style="display: none;"></div>
+        <div id="inventory-container" class="module-container" style="display: none;"></div>
+        <div id="orders-container" class="module-container" style="display: none;"></div>
+        <div id="vendors-container" class="module-container" style="display: none;"></div>
+        <div id="costing-container" class="module-container" style="display: none;"></div>
+        <div id="pricing-container" class="module-container" style="display: none;"></div>
+        <div id="team-container" class="module-container" style="display: none;"></div>
+        <div id="standards-container" class="module-container" style="display: none;"></div>
+        <div id="analytics-container" class="module-container" style="display: none;"></div>
+        <div id="settings-container" class="module-container" style="display: none;"></div>
+    </main>
+
+    <!-- Scripts: Achievement System FIRST, then modules -->
+    <script src="js/achievements.js"></script>
+    <script src="js/recipes.js"></script>
+    <script src="js/prepLists.js"></script>
+    <script src="js/inventory.js"></script>
+    <script src="js/orders.js"></script>
+    <script src="js/vendors.js"></script>
+    <script src="js/costing.js"></script>
+    <script src="js/pricing.js"></script>
+    <script src="js/team.js"></script>
+    <script src="js/standards.js"></script>
+    <script src="js/analytics.js"></script>
+    <script src="js/settings.js"></script>
+
+    <!-- Simple Router -->
+    <script>
+        // Simple hash-based routing
+        function navigate(module) {
+            // Hide all containers
+            document.querySelectorAll('.module-container').forEach(c => c.style.display = 'none');
+            
+            // Show selected container
+            const container = document.getElementById(module + '-container');
+            if (container) {
+                container.style.display = 'block';
+            }
+
+            // Update active nav link
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            const activeLink = document.querySelector(`[href="#${module}"]`);
+            if (activeLink) activeLink.classList.add('active');
+        }
+
+        // Handle navigation clicks
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const module = e.target.getAttribute('href').substring(1);
+                window.location.hash = module;
+                navigate(module);
+            });
+        });
+
+        // Handle initial load and hash changes
+        window.addEventListener('hashchange', () => {
+            const module = window.location.hash.substring(1) || 'analytics';
+            navigate(module);
+        });
+
+        // Load initial module
+        const initialModule = window.location.hash.substring(1) || 'analytics';
+        navigate(initialModule);
+
+        // Language toggle
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const lang = btn.dataset.lang;
+                document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Update all bilingual elements
+                document.querySelectorAll('[data-en][data-ja]').forEach(el => {
+                    el.textContent = el.getAttribute(`data-${lang}`);
+                });
+                
+                localStorage.setItem('katachi-language', lang);
+            });
+        });
+    </script>
+</body>
+</html>
